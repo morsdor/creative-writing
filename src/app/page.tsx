@@ -1,5 +1,5 @@
-import { Dashboard } from "@/components/Dashboard";
+import { TrackChooser } from "@/components/TrackChooser";
 
 export default function Home() {
-  return <Dashboard />;
+  return <TrackChooser />;
 }

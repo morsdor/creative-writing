@@ -1,5 +1,4 @@
-import { MONTHS } from "@/data/curriculum";
-import type { Category, Month, Week } from "@/lib/types";
+import type { Category, Month, Track, Week } from "@/lib/types";
 import type { TrackerState } from "@/lib/store";
 
 export interface Progress {
@@ -41,9 +40,9 @@ export function monthProgress(state: TrackerState, m: Month): Progress & { deliv
   return { ...acc, pct: pct(acc.done, acc.total), deliverablesDone };
 }
 
-export function overallProgress(state: TrackerState) {
+export function overallProgress(state: TrackerState, track: Track) {
   const acc = { done: 0, total: 0, hoursDone: 0, hoursTotal: 0, deliverablesDone: 0, deliverablesTotal: 0 };
-  for (const m of MONTHS) {
+  for (const m of track.months) {
     const p = monthProgress(state, m);
     acc.done += p.done;
     acc.total += p.total;
@@ -55,28 +54,23 @@ export function overallProgress(state: TrackerState) {
   return { ...acc, pct: pct(acc.done, acc.total) };
 }
 
-export function categoryHours(state: TrackerState) {
-  const out: Record<Category, { done: number; total: number }> = {
-    writing: { done: 0, total: 0 },
-    fiction: { done: 0, total: 0 },
-    craft: { done: 0, total: 0 },
-    lecture: { done: 0, total: 0 },
-    hindi: { done: 0, total: 0 },
-    reflect: { done: 0, total: 0 },
-  };
-  for (const m of MONTHS)
+export function categoryHours(state: TrackerState, track: Track) {
+  const out = {} as Record<Category, { done: number; total: number }>;
+  for (const b of track.budget) out[b.category] = { done: 0, total: 0 };
+  for (const m of track.months)
     for (const w of m.weeks)
       for (const t of w.tasks) {
-        out[t.category].total += t.hours;
-        if (state.done[t.id]) out[t.category].done += t.hours;
+        const c = (out[t.category] ??= { done: 0, total: 0 });
+        c.total += t.hours;
+        if (state.done[t.id]) c.done += t.hours;
       }
   return out;
 }
 
 /** The first week that still has unfinished tasks. */
-export function nextUp(state: TrackerState): { month: Month; week: Week; index: number } | null {
+export function nextUp(state: TrackerState, track: Track): { month: Month; week: Week; index: number } | null {
   let index = 0;
-  for (const m of MONTHS)
+  for (const m of track.months)
     for (const w of m.weeks) {
       index++;
       if (w.tasks.some((t) => !state.done[t.id])) return { month: m, week: w, index };

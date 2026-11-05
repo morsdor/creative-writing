@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { MONTHS } from "@/data/curriculum";
-import { actions, useTracker } from "@/lib/store";
+import type { TrackId } from "@/lib/types";
+import { getTrack } from "@/data/tracks";
+import { trackActions, useTracker } from "@/lib/store";
 import { logKey, logTotals, weekProgress } from "@/lib/progress";
 import { Card, Eyebrow, H2, ProgressBar } from "@/components/ui";
 
-export function LogView() {
-  const { state } = useTracker();
+export function LogView({ trackId }: { trackId: TrackId }) {
+  const track = getTrack(trackId);
+  const MONTHS = track.months;
+  const { state } = useTracker(trackId);
+  const actions = trackActions(trackId);
   const totals = logTotals(state);
   const rows = MONTHS.flatMap((m) => m.weeks.map((w, i) => ({ m, w, index: (m.n - 1) * 4 + i + 1 })));
   const maxWords = Math.max(2500, ...rows.map((r) => state.logs[logKey(r.m.n, r.w.n)]?.words ?? 0));
@@ -16,7 +20,7 @@ export function LogView() {
   return (
     <div className="space-y-10">
       <header className="max-w-3xl space-y-3">
-        <Eyebrow>Weekly log</Eyebrow>
+        <Eyebrow>Weekly log · {track.name} track</Eyebrow>
         <h1 className="font-serif text-4xl font-semibold tracking-tight">What you actually did</h1>
         <p className="leading-relaxed text-muted">
           Ticked tasks show the plan. This log shows reality: the hours you actually spent and the words you wrote. Fill it in on Friday during your reflection time. It&apos;s the honest measure of whether 10 hours a week is working.
@@ -77,7 +81,7 @@ export function LogView() {
                 return (
                   <tr key={key} className={w.n === 1 ? "border-t-2 border-t-line" : ""}>
                     <td className="whitespace-nowrap px-4 py-2 tabular-nums">
-                      <Link href={`/month/${m.n}#week-${w.n}`} className="hover:text-accent">
+                      <Link href={`/${trackId}/month/${m.n}#week-${w.n}`} className="hover:text-accent">
                         <span className="text-muted">{index}.</span> M{m.n}·W{w.n}
                       </Link>
                     </td>

@@ -1,97 +1,15 @@
-import type { Category, Month, Quarter, Task, Week } from "../lib/types";
+import type { Month, Resource } from "../../lib/types.ts";
+import { WRITING_EXCUSES, gutenberg, week, yt } from "../helpers.ts";
 
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
-
-type Row = [Category, number, string, string?];
-
-function week(m: number, n: number, focus: string, rows: Row[]): Week {
-  const tasks: Task[] = rows.map(([category, hours, title, detail], i) => ({
-    id: `m${m}w${n}t${i + 1}`,
-    category,
-    hours,
-    title,
-    detail,
-  }));
-  return { n, focus, tasks };
-}
-
-const yt = (q: string) =>
-  `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
-const gutenberg = (q: string) =>
-  `https://www.gutenberg.org/ebooks/search/?query=${encodeURIComponent(q)}`;
-const HINDWI = "https://www.hindwi.org/";
-const WRITING_EXCUSES = "https://writingexcuses.com/";
-
-/* ------------------------------------------------------------------ */
-/*  The weekly budget (10 hours)                                       */
-/* ------------------------------------------------------------------ */
-
-export const WEEKLY_BUDGET: { category: Category; hours: number; label: string; note: string }[] = [
-  { category: "writing", hours: 4.5, label: "Writing", note: "Drafting, exercises, revision. The core of the year." },
-  { category: "fiction", hours: 2.5, label: "Reading fiction", note: "English novels & stories, read like a writer." },
-  { category: "craft", hours: 0.75, label: "Craft books", note: "One chapter at a time, tied to the month's subject." },
-  { category: "lecture", hours: 0.75, label: "Lectures & podcasts", note: "Sanderson's BYU lectures, Writing Excuses." },
-  { category: "hindi", hours: 1, label: "Hindi (hedge)", note: "Pleasure reading in Hindi + one Hindi story per quarter." },
-  { category: "reflect", hours: 0.5, label: "Notes & reflection", note: "Weekly log, reading notes, feedback triage." },
-];
-
-export const WEEKLY_RHYTHM: { day: string; hours: string; what: string }[] = [
-  { day: "Monday", hours: "1 h", what: "Craft book chapter (45 min) + notes (15 min)" },
-  { day: "Tuesday", hours: "1 h", what: "Writing — short session" },
-  { day: "Wednesday", hours: "1 h", what: "Fiction reading" },
-  { day: "Thursday", hours: "1 h", what: "Writing — short session" },
-  { day: "Friday", hours: "1 h", what: "Lecture / podcast (45 min) + reflection (15 min)" },
-  { day: "Saturday", hours: "2.5 h", what: "Deep writing session — protect this one" },
-  { day: "Sunday", hours: "2.5 h", what: "Fiction reading (1.5 h) + Hindi reading (1 h)" },
-];
-
-export const CATEGORY_LABEL: Record<Category, string> = {
-  craft: "Craft",
-  lecture: "Lecture",
-  fiction: "Fiction",
-  writing: "Writing",
-  hindi: "Hindi",
-  reflect: "Reflect",
+/** English-track months are written with four fixed resource groups, then mapped to shelves. */
+type EnMonth = Omit<Month, "shelves"> & {
+  craft: Resource[];
+  lectures: Resource[];
+  fiction: Resource[];
+  stories: Resource[];
 };
 
-/* ------------------------------------------------------------------ */
-/*  Quarters                                                           */
-/* ------------------------------------------------------------------ */
-
-export const QUARTERS: Quarter[] = [
-  {
-    n: 1,
-    title: "Foundations",
-    months: "Months 1–3",
-    goal: "Learn to read like a writer and finish five short stories. Story, plot and character at short-story scale.",
-  },
-  {
-    n: 2,
-    title: "The Page & the Blueprint",
-    months: "Months 4–6",
-    goal: "Control point of view, voice, scenes and dialogue — then design your novella before drafting it.",
-  },
-  {
-    n: 3,
-    title: "The Draft",
-    months: "Months 7–9",
-    goal: "Write the whole novella, about 2,000 words a week, while studying the craft you need at each stage.",
-  },
-  {
-    n: 4,
-    title: "Revision & Going Public",
-    months: "Months 10–12",
-    goal: "Rest the draft, diagnose it, revise it with beta readers, submit your best stories and plan Year 2.",
-  },
-];
-
-/* ------------------------------------------------------------------ */
-/*  The twelve months                                                  */
-/* ------------------------------------------------------------------ */
-
-export const MONTHS: Month[] = [
+const RAW: EnMonth[] = [
   /* ============================ MONTH 1 ============================ */
   {
     n: 1,
@@ -120,10 +38,11 @@ export const MONTHS: Month[] = [
       { title: "The Old Man and the Sea", author: "Ernest Hemingway", what: "Whole novella (≈110 pages).", why: "A one-line premise sustained for a hundred pages. Study escalation and how much emotion plain sentences can carry.", bookId: "old-man" },
       { title: "Saunders' stories", author: "Chekhov, Turgenev", what: "Read inside A Swim in a Pond in the Rain.", why: "These count as fiction reading as well as craft study.", bookId: "saunders" },
     ],
-    hindi: [
-      { title: "कफ़न", author: "प्रेमचंद", what: "Short story. Free on Hindwi.", why: "Moral horror shown without commentary. Notice what Premchand refuses to explain.", url: HINDWI, bookId: "premchand" },
-      { title: "पूस की रात", author: "प्रेमचंद", what: "Short story.", why: "One night, one field, one decision. A whole social world compressed into a single scene.", url: HINDWI, bookId: "premchand" },
-      { title: "ईदगाह · बड़े भाई साहब", author: "प्रेमचंद", what: "Short stories, weeks 3–4.", why: "Just reading for pleasure. Keep your ear for literary Hindi alive.", url: HINDWI, bookId: "premchand" },
+    stories: [
+      { title: "“The Lottery”", author: "Shirley Jackson", what: "Week 1. Widely anthologised; often online.", why: "Note the exact sentence where you first felt something was wrong. How early was the ending planted?" },
+      { title: "“Araby”", author: "James Joyce", what: "Week 2. Free on Project Gutenberg.", why: "A boy's crush, a trip to a bazaar, one sentence of self-knowledge at the end. What changed?", url: gutenberg("dubliners joyce") },
+      { title: "“The Story of an Hour”", author: "Kate Chopin", what: "Week 3. Free on Project Gutenberg.", why: "Barely two pages, two reversals. Mark both.", url: gutenberg("kate chopin") },
+      { title: "“An Astrologer's Day”", author: "R.K. Narayan", what: "Week 4. Widely anthologised; often online.", why: "A twist set up from the first paragraph. Find every setup." },
     ],
     readingQuestions: [
       "What does the protagonist want, and when did you first know it?",
@@ -140,7 +59,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Finish “In the Cart”; begin The Old Man and the Sea (≈40 pages)"],
         ["writing", 2, "Premise sprint: write 10 premises", "Use the form “A ___ wants ___, but ___.” Draw from things you've seen, overheard or can't stop thinking about."],
         ["writing", 2.5, "Free-write 500 words each on your two favourite premises", "No editing. You're looking for the one with energy."],
-        ["hindi", 1, "Read कफ़न; install a Hindi phonetic keyboard", "macOS: Settings → Keyboard → Input Sources → Hindi – Transliteration. Fix this now so typing never slows a Hindi story later."],
+        ["fiction", 1, "Story of the week: “The Lottery” (Shirley Jackson)", "Note the exact sentence where you first felt something was wrong. How early was the ending planted?"],
       ]),
       week(1, 2, "Your first complete story", [
         ["craft", 0.75, "Saunders: essay on “In the Cart”"],
@@ -149,16 +68,16 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Old Man and the Sea to ≈p. 90", "Mark where the tension rises. Where does Hemingway summarise, and where does he slow down?"],
         ["writing", 2, "Draft Story #1: opening and middle (1,000–1,500 words total)"],
         ["writing", 2.5, "Finish Story #1, even if the ending is weak", "A weak ending you can revise beats a perfect beginning you abandoned."],
-        ["hindi", 1, "Read पूस की रात"],
+        ["fiction", 1, "Story of the week: “Araby” (James Joyce)", "A boy's crush, a trip to a bazaar, one sentence of self-knowledge at the end. What changed?"],
       ]),
       week(1, 3, "Your second story", [
         ["craft", 0.75, "Saunders: “The Singers” + essay"],
         ["lecture", 0.75, "Writing Excuses: 2–3 episodes on ideas & premise"],
-        ["reflect", 0.5, "Compare कफ़न and The Old Man and the Sea", "Both are about poverty and dignity. How does each ending make you feel, and how is that done?"],
+        ["reflect", 0.5, "Compare “In the Cart” and The Old Man and the Sea", "Both follow one tired person through one ordeal. How does each ending make you feel, and how is that done?"],
         ["fiction", 2.5, "Finish The Old Man and the Sea"],
         ["writing", 2.5, "Draft Story #2 from your second premise"],
         ["writing", 2, "Finish Story #2"],
-        ["hindi", 1, "Read ईदगाह (for pleasure)"],
+        ["fiction", 1, "Story of the week: “The Story of an Hour” (Kate Chopin)", "Barely two pages, two reversals. Mark both."],
       ]),
       week(1, 4, "First revision and first look back", [
         ["craft", 0.75, "Saunders: “The Darling” essay"],
@@ -167,7 +86,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Read “The Darling” (Chekhov) via Saunders"],
         ["writing", 2.5, "Revise Story #1 once", "Read it aloud. Cut 10%. Make the ending land on an image or action, not an explanation."],
         ["writing", 2, "Read Story #2 Saunders-style, a page at a time; write 3 new premises from daily observation"],
-        ["hindi", 1, "Read बड़े भाई साहब (for pleasure)"],
+        ["fiction", 1, "Story of the week: “An Astrologer's Day” (R.K. Narayan)", "A twist set up from the first paragraph. Find every setup."],
       ]),
     ],
     deliverables: [
@@ -175,7 +94,7 @@ export const MONTHS: Month[] = [
       { id: "m1d2", text: "Story #1 drafted and revised once" },
       { id: "m1d3", text: "Story #2 drafted" },
       { id: "m1d4", text: "Reading notes on three Saunders stories and The Old Man and the Sea" },
-      { id: "m1d5", text: "Hindi keyboard set up; four Premchand stories read" },
+      { id: "m1d5", text: "Four story-of-the-week notes (one line each: what the story withholds)" },
     ],
     selfCheck: [
       "Can you state each of your stories' premise in one sentence?",
@@ -219,9 +138,11 @@ export const MONTHS: Month[] = [
       { title: "Saunders' Russian stories", what: "As listed under craft.", why: "Counts as fiction reading too.", bookId: "saunders" },
       { title: "Interpreter of Maladies", author: "Jhumpa Lahiri", what: "“A Temporary Matter”, “When Mr. Pirzada Came to Dine”, “Interpreter of Maladies”, “A Real Durwan”, “Sexy”.", why: "Quiet, contemporary, Indian and diaspora stories with precise plotting. Small events with big consequences.", bookId: "interpreter" },
     ],
-    hindi: [
-      { title: "उसने कहा था", author: "चंद्रधर शर्मा गुलेरी", what: "Short story (1915). Free online.", why: "One of the first great Hindi short stories, built on a flashback structure. Map the order of events against the order of telling.", url: HINDWI, bookId: "guleri" },
-      { title: "पंचलाइट", author: "फणीश्वरनाथ रेणु", what: "Short story.", why: "A comic plot built entirely around one object. Notice how much village life it holds.", url: HINDWI, bookId: "renu-stories" },
+    stories: [
+      { title: "“A Good Man Is Hard to Find”", author: "Flannery O'Connor", what: "Week 1. Widely anthologised; often online.", why: "Track how each small decision (the cat, the detour) pushes the family toward catastrophe." },
+      { title: "“Bullet in the Brain”", author: "Tobias Wolff", what: "Week 2. Widely anthologised; often online.", why: "Write its timeline vs. its telling order. Why does Wolff stop time where he does?" },
+      { title: "“The Necklace”", author: "Guy de Maupassant", what: "Week 3. Free on Project Gutenberg.", why: "Setup and payoff in its purest form. Would the ending work without the first page?", url: gutenberg("maupassant") },
+      { title: "“The Gift of the Magi”", author: "O. Henry", what: "Week 4. Free on Project Gutenberg.", why: "An ironic reversal. Is it earned, or just clever?", url: gutenberg("gift of the magi") },
     ],
     readingQuestions: [
       "What is the inciting incident, and on which page does it happen?",
@@ -237,7 +158,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Read “Master and Man” (Tolstoy)"],
         ["writing", 2, "Reverse-engineer a film you love", "One-sentence premise, 12–15 beats, turning points, climax. From memory, no online breakdowns."],
         ["writing", 2.5, "Three outlines for ONE premise", "Take a Month 1 premise. Write three different 12-beat outlines: different ending, different inciting incident, different protagonist."],
-        ["hindi", 1, "Read उसने कहा था"],
+        ["fiction", 1, "Story of the week: “A Good Man Is Hard to Find” (Flannery O'Connor)", "Track how each small decision (the cat, the detour) pushes the family toward catastrophe."],
       ]),
       week(2, 2, "The outlined story", [
         ["craft", 0.75, "Saunders: finish the “Master and Man” essay"],
@@ -246,7 +167,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Lahiri: “A Temporary Matter” + “When Mr. Pirzada Came to Dine”", "Mark the turning points in each."],
         ["writing", 2, "Draft Story #3 from your chosen outline (1,500–2,000 words), part 1"],
         ["writing", 2.5, "Finish Story #3"],
-        ["hindi", 1, "Re-read उसने कहा था: write its timeline vs. its telling order"],
+        ["fiction", 1, "Story of the week: “Bullet in the Brain” (Tobias Wolff)", "Write its timeline vs. its telling order. Why does Wolff stop time where he does?"],
       ]),
       week(2, 3, "The discovered story", [
         ["craft", 0.75, "Saunders: “Gooseberries” essay"],
@@ -255,7 +176,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "“Gooseberries”, “The Nose” + Lahiri's “Interpreter of Maladies”"],
         ["writing", 2.5, "Story #4, discovery-written: no outline at all", "Start with a character in a place with a problem. Follow it."],
         ["writing", 2, "Continue Story #4"],
-        ["hindi", 1, "Read पंचलाइट"],
+        ["fiction", 1, "Story of the week: “The Necklace” (Guy de Maupassant)", "Setup and payoff in its purest form. Would the ending work without the first page?"],
       ]),
       week(2, 4, "Compare your methods; line up readers", [
         ["craft", 0.75, "Saunders: “Alyosha the Pot” + afterword"],
@@ -264,7 +185,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Lahiri: “A Real Durwan” + “Sexy”"],
         ["writing", 2, "Finish Story #4"],
         ["writing", 2.5, "Revise Story #3 for causality", "Every scene should connect to the next with “therefore” or “but”. Cut or fix any that don't."],
-        ["hindi", 1, "Free Hindi reading — any short story you like"],
+        ["fiction", 1, "Story of the week: “The Gift of the Magi” (O. Henry)", "An ironic reversal. Is it earned, or just clever?"],
       ]),
     ],
     deliverables: [
@@ -293,7 +214,7 @@ export const MONTHS: Month[] = [
     title: "Character: Desire, Fear, Choice",
     question: "What makes invented people feel like real human beings?",
     summary:
-      "Characters become real when what they want, what they fear and what they believe force them into choices. You'll build characters, test them in pressure scenes, write a character-driven story, get your first outside feedback, and write your first Hindi story.",
+      "Characters become real when what they want, what they fear and what they believe force them into choices. You'll build characters, test them in pressure scenes, write a character-driven story, get your first outside feedback, and try a flash story.",
     concepts: [
       { term: "Want vs. need", explain: "The want is conscious and external (the promotion, the girl, the house). The need is what they actually lack, often invisible to them. The best stories set the two against each other." },
       { term: "The belief (or lie) the character lives by", explain: "Stevens in The Remains of the Day believes dignity means suppressing feeling. Every choice he makes comes from that belief, and the story tests it." },
@@ -315,15 +236,17 @@ export const MONTHS: Month[] = [
     fiction: [
       { title: "The Remains of the Day", author: "Kazuo Ishiguro", what: "Whole novel (≈250 pages) across the month.", why: "Character, self-deception and an unreliable narrator. Everything important happens in what Stevens doesn't say.", bookId: "remains" },
     ],
-    hindi: [
-      { title: "चीफ़ की दावत", author: "भीष्म साहनी", what: "Short story.", why: "A son's shame about his mother, shown through one dinner party. Character revealed entirely through choices.", url: HINDWI, bookId: "sahni-stories" },
-      { title: "Hindi probe #1", what: "Write a 1,000–1,500-word Hindi story in week 4.", why: "One of four Hindi stories this year. It checks whether your strongest voice might be in Hindi." },
+    stories: [
+      { title: "“Miss Brill”", author: "Katherine Mansfield", what: "Week 1. Free on Project Gutenberg.", why: "Self-deception from inside. When do you see what she can't?", url: gutenberg("mansfield garden party") },
+      { title: "“Everyday Use”", author: "Alice Walker", what: "Week 2. Widely anthologised; often online.", why: "List each choice the mother makes and what it reveals." },
+      { title: "“Bartleby, the Scrivener”", author: "Herman Melville", what: "Week 3. Free on Project Gutenberg.", why: "A character who refuses. How does the narrator's reaction make Bartleby vivid?", url: gutenberg("bartleby") },
+      { title: "“Sonny's Blues”", author: "James Baldwin", what: "Week 4. Widely anthologised; often online.", why: "Two brothers, one long reconciliation. How does the final scene carry everything before it?" },
     ],
     readingQuestions: [
       "What does Stevens want, and what does he need?",
       "Find three moments where Stevens chooses duty over feeling. What does each one cost him?",
       "What does Ishiguro let you understand that Stevens himself doesn't?",
-      "In चीफ़ की दावत, how is Shamnath characterised without the narrator judging him?",
+      "In “Everyday Use”, how is Dee characterised without the narrator judging her outright?",
     ],
     weeks: [
       week(3, 1, "Building characters", [
@@ -333,7 +256,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Remains of the Day, ≈70 pages"],
         ["writing", 2, "Three character sketches, one page each", "Protagonist, antagonist, a secondary character. For each: want, fear, contradiction, a secret, what they'd never do, and what would make them do it. One page each, no encyclopedias."],
         ["writing", 2.5, "Scene: a character lies", "The reader should know it's a lie; the other character shouldn't."],
-        ["hindi", 1, "Read चीफ़ की दावत"],
+        ["fiction", 1, "Story of the week: “Miss Brill” (Katherine Mansfield)", "Self-deception from inside. When do you see what she can't?"],
       ]),
       week(3, 2, "Pressure scenes", [
         ["craft", 0.75, "Burroway: characterisation, part II"],
@@ -342,7 +265,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Remains of the Day to ≈p. 160"],
         ["writing", 2, "Scene: a moral choice that costs something either way"],
         ["writing", 2.5, "Scene: two characters want opposite things and neither says so directly"],
-        ["hindi", 1, "Re-read चीफ़ की दावत: list each choice Shamnath makes and what it reveals"],
+        ["fiction", 1, "Story of the week: “Everyday Use” (Alice Walker)", "List each choice the mother makes and what it reveals."],
       ]),
       week(3, 3, "The character-driven story", [
         ["craft", 0.75, "Check your three scenes against Burroway's methods of characterisation"],
@@ -351,15 +274,16 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Finish The Remains of the Day"],
         ["writing", 2, "Draft Story #5 (≈2,000 words), part 1", "Build it from one of your sketches. The plot should come from the character's want against their belief."],
         ["writing", 2.5, "Finish Story #5"],
-        ["hindi", 1, "Read any Hindi short story; jot 5 premises in Hindi for next week"],
+        ["fiction", 1, "Story of the week: “Bartleby, the Scrivener” (Herman Melville)", "A character who refuses. How does the narrator's reaction make Bartleby vivid?"],
       ]),
-      week(3, 4, "First feedback and Hindi probe #1", [
+      week(3, 4, "First feedback and a flash story", [
         ["craft", 0.75, "Re-read all five stories; rank them and write why"],
         ["lecture", 0.75, "Writing Excuses: receiving critique"],
         ["reflect", 0.5, "Quarter 1 review", "What can you do now that you couldn't in Month 1? What is your biggest weakness?"],
         ["fiction", 2.5, "Two contemporary short stories of your choice", "Try a recent anthology or a literary magazine online."],
         ["writing", 2.5, "Revise Story #5, then send your two best stories to your readers", "Ask three questions: Where were you bored? Where were you confused? What stayed with you?"],
-        ["hindi", 3, "Hindi probe #1: write a 1,000–1,500-word Hindi story", "Write natively in Hindi; don't translate. Use whichever register your characters would speak."],
+        ["writing", 2, "Flash story: 750–1,000 words in a single scene", "One room, one conversation, one turn. Practise compression before next month's POV work."],
+        ["fiction", 1, "Story of the week: “Sonny's Blues” (James Baldwin)", "Two brothers, one long reconciliation. How does the final scene carry everything before it?"],
       ]),
     ],
     deliverables: [
@@ -367,13 +291,13 @@ export const MONTHS: Month[] = [
       { id: "m3d2", text: "Three pressure scenes (lie, moral choice, opposing wants)" },
       { id: "m3d3", text: "Story #5, character-driven, ≈2,000 words, revised" },
       { id: "m3d4", text: "Two stories sent to readers with your three questions" },
-      { id: "m3d5", text: "Hindi probe #1 written" },
+      { id: "m3d5", text: "Flash story (750–1,000 words) written" },
       { id: "m3d6", text: "Quarter 1 review written" },
     ],
     selfCheck: [
       "Can you state your protagonist's want, need and belief, and show where they collide?",
       "In each scene, does the character make a choice that reveals them?",
-      "How did writing in Hindi feel compared with English? Write it down while it's fresh.",
+      "Which of your five stories surprised you most while writing it? Why?",
     ],
     pitfalls: [
       "Ten-page character questionnaires. They feel productive and rarely are.",
@@ -411,15 +335,17 @@ export const MONTHS: Month[] = [
       { title: "The Great Gatsby", author: "F. Scott Fitzgerald", what: "Whole novel (≈180 pages).", why: "Nick is an observer-narrator telling someone else's story. Study what he can't know and how Fitzgerald works around it.", bookId: "gatsby" },
       { title: "“Cathedral”", author: "Raymond Carver", what: "Short story (week 4).", why: "A first-person voice that reveals more than the narrator intends.", bookId: "cathedral" },
     ],
-    hindi: [
-      { title: "परिंदे", author: "निर्मल वर्मा", what: "Long short story, across weeks 1–3.", why: "Interiority, silence and atmosphere: the inner life as the main event.", url: HINDWI, bookId: "verma-parinde" },
-      { title: "मिस पाल", author: "मोहन राकेश", what: "Short story (week 4).", why: "Loneliness seen through an outsider's eyes. A Hindi lesson in POV.", url: HINDWI, bookId: "rakesh-stories" },
+    stories: [
+      { title: "“Girl”", author: "Jamaica Kincaid", what: "Week 1. Widely anthologised; often online.", why: "One sentence, one voice. Copy out the first ten lines and notice the rhythm." },
+      { title: "“A Rose for Emily”", author: "William Faulkner", what: "Week 2. Widely anthologised; often online.", why: "Told by “we”, the town. What can a collective narrator know that a single one can't?" },
+      { title: "“The Ones Who Walk Away from Omelas”", author: "Ursula K. Le Guin", what: "Week 3. Widely anthologised; often online.", why: "A narrator who talks to you directly and asks you to build the city. Why does it work?" },
+      { title: "“Why I Live at the P.O.”", author: "Eudora Welty", what: "Week 4. Widely anthologised; often online.", why: "A comic unreliable narrator. Where do you stop believing her?" },
     ],
     readingQuestions: [
       "What does Nick know, and what does he only guess?",
       "Where does Fitzgerald move closer to or farther from a character?",
       "Is Nick reliable? Find one passage that makes you doubt him.",
-      "In परिंदे, what is said and what is only felt?",
+      "In “A Rose for Emily”, why is the story told by “we”?",
     ],
     weeks: [
       week(4, 1, "One incident, two ways", [
@@ -429,7 +355,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Great Gatsby, chapters 1–3"],
         ["writing", 2, "The incident in first person, from the protagonist (≈700 words)"],
         ["writing", 2.5, "The same incident in third limited, from a bystander"],
-        ["hindi", 1, "परिंदे, first third"],
+        ["fiction", 1, "Story of the week: “Girl” (Jamaica Kincaid)", "One sentence, one voice. Copy out the first ten lines and notice the rhythm."],
       ]),
       week(4, 2, "Omniscient and unreliable", [
         ["craft", 0.75, "Le Guin: point of view & voice chapter + exercise"],
@@ -438,7 +364,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Great Gatsby, chapters 4–6", "Note every time Nick reports something he didn't witness. How does he justify knowing it?"],
         ["writing", 2, "The same incident, omniscient"],
         ["writing", 2.5, "The same incident, from an unreliable first-person narrator", "Let the reader see the truth around the narrator's version."],
-        ["hindi", 1, "परिंदे, second third"],
+        ["fiction", 1, "Story of the week: “A Rose for Emily” (William Faulkner)", "Told by “we”, the town. What can a collective narrator know that a single one can't?"],
       ]),
       week(4, 3, "Story #6 in your hardest POV", [
         ["craft", 0.75, "Le Guin: changing point of view chapter"],
@@ -447,7 +373,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Finish The Great Gatsby"],
         ["writing", 2, "Draft Story #6 (≈2,000 words) in the POV you found hardest"],
         ["writing", 2.5, "Continue Story #6"],
-        ["hindi", 1, "Finish परिंदे; note how Verma uses silence"],
+        ["fiction", 1, "Story of the week: “The Ones Who Walk Away from Omelas” (Ursula K. Le Guin)", "A narrator who talks to you directly and asks you to build the city. Why does it work?"],
       ]),
       week(4, 4, "Process feedback; novella seeds", [
         ["craft", 0.75, "Le Guin: indirect narration chapter"],
@@ -456,7 +382,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "“Cathedral” (Carver) + one more story of your choice"],
         ["writing", 2, "Finish Story #6"],
         ["writing", 2.5, "Novella seeds: three one-paragraph novella premises", "Bigger than a short story: more time, more people, a deeper change."],
-        ["hindi", 1, "Read मिस पाल"],
+        ["fiction", 1, "Story of the week: “Why I Live at the P.O.” (Eudora Welty)", "A comic unreliable narrator. Where do you stop believing her?"],
       ]),
     ],
     deliverables: [
@@ -508,8 +434,11 @@ export const MONTHS: Month[] = [
       { title: "“The Lady with the Dog”", author: "Anton Chekhov", what: "Short story (free on Project Gutenberg).", why: "Scene, summary and precise detail in balance.", url: gutenberg("lady with the dog chekhov"), bookId: "lady-dog" },
       { title: "Interpreter of Maladies (remaining stories)", author: "Jhumpa Lahiri", what: "“This Blessed House”, “The Treatment of Bibi Haldar”, “The Third and Final Continent”.", why: "Scenes built from small domestic details.", bookId: "interpreter" },
     ],
-    hindi: [
-      { title: "सूरज का सातवाँ घोड़ा", author: "धर्मवीर भारती", what: "Short novel (≈100 pages), across Months 5–6.", why: "A frame narrative in which a narrator tells stories over several afternoons. It's openly about how stories are built.", bookId: "suraj" },
+    stories: [
+      { title: "“A Clean, Well-Lighted Place”", author: "Ernest Hemingway", what: "Week 1. Widely anthologised; often online.", why: "Almost all dialogue. Who speaks each line, and how do you know?" },
+      { title: "“Cat Person”", author: "Kristen Roupenian", what: "Week 2. Widely anthologised; often online.", why: "Scenes built from tiny shifts in attraction and dread. Mark each shift." },
+      { title: "“Emergency”", author: "Denis Johnson", what: "Week 3. Widely anthologised; often online.", why: "Strange, exact detail and unpredictable rhythm. Pick three sentences and say why they're shaped that way." },
+      { title: "“The Garden Party”", author: "Katherine Mansfield", what: "Week 4. Free on Project Gutenberg.", why: "Sensory detail that carries class and death. Which details imply the most?", url: gutenberg("mansfield garden party") },
     ],
     readingQuestions: [
       "In “Hills Like White Elephants”, what is the conversation really about? How do you know?",
@@ -525,7 +454,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "“Hills Like White Elephants” (twice) + “The Lady with the Dog”"],
         ["writing", 2, "Scene: two people meet for the first time", "Each has a hidden agenda."],
         ["writing", 2.5, "Scene: an argument about something important, fought over something trivial"],
-        ["hindi", 1, "सूरज का सातवाँ घोड़ा — opening sections"],
+        ["fiction", 1, "Story of the week: “A Clean, Well-Lighted Place” (Ernest Hemingway)", "Almost all dialogue. Who speaks each line, and how do you know?"],
       ]),
       week(5, 2, "Sentences and detail", [
         ["craft", 0.75, "Le Guin: sound, punctuation, sentence length + exercises"],
@@ -534,7 +463,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Lahiri: “This Blessed House” + “The Treatment of Bibi Haldar”"],
         ["writing", 2, "Scene: a character hides a secret from someone who almost discovers it"],
         ["writing", 2.5, "Scene: a moment of grief, with no tears and no word for the feeling"],
-        ["hindi", 1, "सूरज का सातवाँ घोड़ा — continue"],
+        ["fiction", 1, "Story of the week: “Cat Person” (Kristen Roupenian)", "Scenes built from tiny shifts in attraction and dread. Mark each shift."],
       ]),
       week(5, 3, "Interior and mechanics", [
         ["craft", 0.75, "Browne & King: Interior Monologue + Easy Beats"],
@@ -543,7 +472,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Lahiri: “The Third and Final Continent”"],
         ["writing", 2, "Scene: a conversation where neither person says what they mean"],
         ["writing", 2.5, "Revise all five scenes for mechanics", "Use “said”, cut adverbs, add beats, enter later, leave earlier, remove filter words."],
-        ["hindi", 1, "सूरज का सातवाँ घोड़ा — continue"],
+        ["fiction", 1, "Story of the week: “Emergency” (Denis Johnson)", "Strange, exact detail and unpredictable rhythm. Pick three sentences and say why they're shaped that way."],
       ]),
       week(5, 4, "Choose your novella", [
         ["craft", 0.75, "Le Guin: repetition, adjectives & adverbs, crowding & leaping"],
@@ -552,7 +481,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "One story of your choice + copywork", "Copy out by hand one page you admire. Feel the rhythm from inside."],
         ["writing", 2.5, "Test-drive each novella premise: write its opening page"],
         ["writing", 2, "Choose one; write its one-sentence and one-paragraph versions"],
-        ["hindi", 1, "सूरज का सातवाँ घोड़ा — continue"],
+        ["fiction", 1, "Story of the week: “The Garden Party” (Katherine Mansfield)", "Sensory detail that carries class and death. Which details imply the most?"],
       ]),
     ],
     deliverables: [
@@ -602,9 +531,11 @@ export const MONTHS: Month[] = [
       { title: "The Stranger", author: "Albert Camus", what: "Whole novella (≈120 pages). Matthew Ward or Sandra Smith translation.", why: "Detached narration, a two-part structure, and a crime at the exact centre.", bookId: "stranger" },
       { title: "Chronicle of a Death Foretold", author: "Gabriel García Márquez", what: "Whole novella (≈120 pages).", why: "The ending is given in the first line, and tension still builds. A lesson that suspense is about how, not what.", bookId: "chronicle" },
     ],
-    hindi: [
-      { title: "सूरज का सातवाँ घोड़ा", author: "धर्मवीर भारती", what: "Finish it.", why: "Notice the frame narrative. Could your novella use a frame?", bookId: "suraj" },
-      { title: "Hindi probe #2", what: "Write a 1,000–1,500-word Hindi story in week 4.", why: "Second of four. Compare it with probe #1." },
+    stories: [
+      { title: "“The Swimmer”", author: "John Cheever", what: "Week 1. Widely anthologised; often online.", why: "A journey across suburban pools is the whole design. When did you realise what it meant?" },
+      { title: "“The Things They Carried”", author: "Tim O'Brien", what: "Week 2. Widely anthologised; often online.", why: "A list as structure. Could your novella have an organising device like this?" },
+      { title: "“Signs and Symbols”", author: "Vladimir Nabokov", what: "Week 3. Widely anthologised; often online.", why: "Pattern and dread. Notice what the story never says outright." },
+      { title: "“The School”", author: "Donald Barthelme", what: "Week 4. Widely anthologised; often online.", why: "Repetition that escalates into absurdity. A design idea in a few pages." },
     ],
     readingQuestions: [
       "How does The Stranger's two-part structure shape its meaning?",
@@ -620,7 +551,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Stranger, Part 1"],
         ["writing", 2, "Premise work: designing principle + one-line premise + theme question"],
         ["writing", 2.5, "Character web: protagonist, opponent, 2–3 supporting, one page each", "For each supporting character: how do they answer the protagonist's problem differently?"],
-        ["hindi", 1, "सूरज का सातवाँ घोड़ा — continue"],
+        ["fiction", 1, "Story of the week: “The Swimmer” (John Cheever)", "A journey across suburban pools is the whole design. When did you realise what it meant?"],
       ]),
       week(6, 2, "Spine and world", [
         ["craft", 0.75, "Truby: Seven Key Steps chapter"],
@@ -629,7 +560,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Stranger, Part 2"],
         ["writing", 2, "Write your novella's seven key steps", "Weakness/need · desire · opponent · plan · battle · self-revelation · new equilibrium."],
         ["writing", 2.5, "Setting sheet (2 pages)", "Place, time, social world, money, who has power, and the sounds and smells. Only what puts pressure on your characters."],
-        ["hindi", 1, "Finish सूरज का सातवाँ घोड़ा; note how the frame works"],
+        ["fiction", 1, "Story of the week: “The Things They Carried” (Tim O'Brien)", "A list as structure. Could your novella have an organising device like this?"],
       ]),
       week(6, 3, "Beats and chapters", [
         ["craft", 0.75, "Truby: Character chapter (+ skim Moral Argument)"],
@@ -638,15 +569,16 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Chronicle of a Death Foretold, first half", "The ending is known. Where does the tension come from?"],
         ["writing", 2.5, "Beat outline: 20–25 beats"],
         ["writing", 2, "Chapter plan: 8–12 chapters, each with a purpose and an ending hook"],
-        ["hindi", 1, "Read one Hindi short story; jot Hindi premises for probe #2"],
+        ["fiction", 1, "Story of the week: “Signs and Symbols” (Vladimir Nabokov)", "Pattern and dread. Notice what the story never says outright."],
       ]),
-      week(6, 4, "Chapter 1 and Hindi probe #2", [
+      week(6, 4, "Chapter 1", [
         ["craft", 0.75, "Check your blueprint against Truby's seven steps"],
         ["lecture", 0.75, "Any episode on beginnings / first chapters"],
         ["reflect", 0.5, "Mid-year review", "What's working, what's not, and is 10 hours a week realistic? Adjust honestly."],
         ["fiction", 2.5, "Finish Chronicle of a Death Foretold"],
         ["writing", 2.5, "Draft chapter 1 of the novella"],
-        ["hindi", 3, "Hindi probe #2: write a 1,000–1,500-word Hindi story"],
+        ["writing", 2, "Finish chapter 1; sketch the first scene of chapter 2", "Stop mid-scene so drafting starts easily next month."],
+        ["fiction", 1, "Story of the week: “The School” (Donald Barthelme)", "Repetition that escalates into absurdity. A design idea in a few pages."],
       ]),
     ],
     deliverables: [
@@ -656,7 +588,7 @@ export const MONTHS: Month[] = [
       { id: "m6d4", text: "Setting sheet (≈2 pages)" },
       { id: "m6d5", text: "Beat outline (20–25 beats) and chapter plan (8–12 chapters)" },
       { id: "m6d6", text: "Chapter 1 drafted" },
-      { id: "m6d7", text: "Hindi probe #2 written" },
+      { id: "m6d7", text: "First scene of chapter 2 sketched" },
       { id: "m6d8", text: "Mid-year review written" },
     ],
     selfCheck: [
@@ -696,13 +628,16 @@ export const MONTHS: Month[] = [
     fiction: [
       { title: "The Guide", author: "R.K. Narayan", what: "Whole novel (≈220 pages).", why: "Malgudi as a living setting, a dual timeline, and a clear Indian English voice. A model for how plain prose can carry a world.", bookId: "guide" },
     ],
-    hindi: [
-      { title: "मित्रो मरजानी", author: "कृष्णा सोबती", what: "Short novel (≈90 pages).", why: "One of the most alive voices in Hindi fiction, built almost entirely on bold, earthy dialogue.", bookId: "mitro" },
+    stories: [
+      { title: "“Brokeback Mountain”", author: "Annie Proulx", what: "Week 1. Widely anthologised; often online.", why: "Landscape pressing on two people. How does the setting shape what they can't say?" },
+      { title: "“The Overcoat”", author: "Nikolai Gogol", what: "Week 2. Free on Project Gutenberg.", why: "A city and an office as pressure on one small man.", url: gutenberg("gogol overcoat") },
+      { title: "“Brownies”", author: "ZZ Packer", what: "Week 3. Widely anthologised; often online.", why: "A whole social world (a summer camp, race, class) built in a few pages." },
+      { title: "“Hunters in the Snow”", author: "Tobias Wolff", what: "Week 4. Widely anthologised; often online.", why: "Cold, distance and menace. How does the setting turn against the characters?" },
     ],
     readingQuestions: [
       "How does Narayan alternate past and present? Why does each switch happen where it does?",
       "How does Malgudi put pressure on Raju?",
-      "In मित्रो मरजानी, how does dialogue alone create character?",
+      "In this month's stories of the week, how does each setting put pressure on its people?",
     ],
     weeks: [
       week(7, 1, "Start the engine", [
@@ -712,7 +647,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Guide, ≈60 pages"],
         ["writing", 2, "Draft ≈900 words (Tue + Thu)"],
         ["writing", 2.5, "Saturday deep session: draft ≈1,100 words"],
-        ["hindi", 1, "मित्रो मरजानी — begin"],
+        ["fiction", 1, "Story of the week: “Brokeback Mountain” (Annie Proulx)", "Landscape pressing on two people. How does the setting shape what they can't say?"],
       ]),
       week(7, 2, "Keep going", [
         ["craft", 0.75, "Truby: Story World, second half"],
@@ -721,7 +656,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Guide, to ≈p. 120", "Track the timeline switches."],
         ["writing", 2, "Draft ≈900 words"],
         ["writing", 2.5, "Saturday: draft ≈1,100 words"],
-        ["hindi", 1, "मित्रो मरजानी — continue"],
+        ["fiction", 1, "Story of the week: “The Overcoat” (Nikolai Gogol)", "A city and an office as pressure on one small man."],
       ]),
       week(7, 3, "Setting under pressure", [
         ["craft", 0.75, "Re-read your setting sheet; add three pressures you've discovered while drafting"],
@@ -730,7 +665,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Guide, to ≈p. 180"],
         ["writing", 2, "Draft ≈900 words"],
         ["writing", 2.5, "Saturday: draft ≈1,100 words"],
-        ["hindi", 1, "मित्रो मरजानी — continue"],
+        ["fiction", 1, "Story of the week: “Brownies” (ZZ Packer)", "A whole social world (a summer camp, race, class) built in a few pages."],
       ]),
       week(7, 4, "Momentum check", [
         ["craft", 0.75, "Compare your chapter plan with what you've actually drafted; adjust the plan, not the draft"],
@@ -739,7 +674,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Finish The Guide"],
         ["writing", 2, "Draft ≈900 words"],
         ["writing", 2.5, "Saturday: draft ≈1,100 words"],
-        ["hindi", 1, "Finish मित्रो मरजानी"],
+        ["fiction", 1, "Story of the week: “Hunters in the Snow” (Tobias Wolff)", "Cold, distance and menace. How does the setting turn against the characters?"],
       ]),
     ],
     deliverables: [
@@ -786,16 +721,17 @@ export const MONTHS: Month[] = [
     fiction: [
       { title: "Never Let Me Go", author: "Kazuo Ishiguro", what: "Whole novel (≈290 pages).", why: "The most controlled release of information in modern literary fiction. The reader learns the truth before the narrator says it plainly.", bookId: "never-let" },
     ],
-    hindi: [
-      { title: "मलबे का मालिक", author: "मोहन राकेश", what: "Short story (week 1).", why: "Partition, memory and a silence that becomes suspense.", url: HINDWI, bookId: "rakesh-stories" },
-      { title: "वापसी", author: "उषा प्रियंवदा", what: "Short story (week 2).", why: "A retired man comes home and finds he no longer belongs. A middle-class family seen with great precision.", url: HINDWI, bookId: "priyamvada" },
-      { title: "तिरिछ", author: "उदय प्रकाश", what: "Long story (weeks 3–4).", why: "Dream, dread and an escalating series of misfortunes: suspense in Hindi literary fiction.", bookId: "uday-prakash" },
+    stories: [
+      { title: "“Where Are You Going, Where Have You Been?”", author: "Joyce Carol Oates", what: "Week 1. Widely anthologised; often online.", why: "Suspense from a stranger at the door. How long does Oates make you wait, and how?" },
+      { title: "“The Monkey's Paw”", author: "W.W. Jacobs", what: "Week 2. Free on Project Gutenberg.", why: "Suspense when you know what's coming: Hitchcock's bomb under the table.", url: gutenberg("monkey's paw jacobs") },
+      { title: "“Bloodchild”", author: "Octavia E. Butler", what: "Week 3. Widely anthologised; often online.", why: "Information released in a careful order. What do you know, suspect and not know on each page?" },
+      { title: "“The Tell-Tale Heart”", author: "Edgar Allan Poe", what: "Week 4. Free on Project Gutenberg.", why: "Escalation inside a narrator's head.", url: gutenberg("poe tell-tale heart") },
     ],
     readingQuestions: [
       "At each point in Never Let Me Go, what do you know, suspect and not know?",
       "Where is the novel's midpoint, and what changes there?",
       "How does Ishiguro end chapters?",
-      "How does तिरिछ escalate?",
+      "How does “The Monkey's Paw” make you dread what you already expect?",
     ],
     weeks: [
       week(8, 1, "Escalate", [
@@ -805,7 +741,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Never Let Me Go, ≈70 pages"],
         ["writing", 2, "Draft ≈900 words", "Before writing, ask: how can this chapter make things worse?"],
         ["writing", 2.5, "Saturday: draft ≈1,100 words"],
-        ["hindi", 1, "Read मलबे का मालिक"],
+        ["fiction", 1, "Story of the week: “Where Are You Going, Where Have You Been?” (Joyce Carol Oates)", "Suspense from a stranger at the door. How long does Oates make you wait, and how?"],
       ]),
       week(8, 2, "Midpoint", [
         ["craft", 0.75, "Truby: Plot chapter, reveals"],
@@ -814,7 +750,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Never Let Me Go, to ≈p. 150", "Map know / suspect / don't know at three points."],
         ["writing", 2, "Draft ≈900 words"],
         ["writing", 2.5, "Saturday: draft ≈1,100 words — aim at the midpoint"],
-        ["hindi", 1, "Read वापसी"],
+        ["fiction", 1, "Story of the week: “The Monkey's Paw” (W.W. Jacobs)", "Suspense when you know what's coming: Hitchcock's bomb under the table."],
       ]),
       week(8, 3, "Suspense and subplot", [
         ["craft", 0.75, "Truby: Scene Weave (selected)"],
@@ -823,7 +759,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Never Let Me Go, to ≈p. 220"],
         ["writing", 2, "Draft ≈900 words"],
         ["writing", 2.5, "Saturday: draft ≈1,100 words — let the subplot collide with the main line"],
-        ["hindi", 1, "तिरिछ — first half"],
+        ["fiction", 1, "Story of the week: “Bloodchild” (Octavia E. Butler)", "Information released in a careful order. What do you know, suspect and not know on each page?"],
       ]),
       week(8, 4, "Chapter endings", [
         ["craft", 0.75, "Review your chapter endings so far against Ishiguro's (notes only, no rewriting)"],
@@ -832,7 +768,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Finish Never Let Me Go"],
         ["writing", 2, "Draft ≈900 words"],
         ["writing", 2.5, "Saturday: draft ≈1,100 words"],
-        ["hindi", 1, "तिरिछ — finish"],
+        ["fiction", 1, "Story of the week: “The Tell-Tale Heart” (Edgar Allan Poe)", "Escalation inside a narrator's head."],
       ]),
     ],
     deliverables: [
@@ -878,13 +814,16 @@ export const MONTHS: Month[] = [
       { title: "The Death of Ivan Ilyich", author: "Leo Tolstoy", what: "Novella (≈90 pages). Free on Project Gutenberg.", why: "The ending is announced on page one, and it's still one of the most powerful endings in literature.", url: gutenberg("death of ivan ilyich"), bookId: "ivan" },
       { title: "Endings revisited", what: "Re-read the last chapters of The Remains of the Day and The Great Gatsby.", why: "Compare a restrained ending with a lyrical one. What does each leave in you?", bookId: "remains" },
     ],
-    hindi: [
-      { title: "दीवार में एक खिड़की रहती थी", author: "विनोद कुमार शुक्ल", what: "Novel, across Months 9–11.", why: "Ordinary domestic life made extraordinary through perception and very simple sentences. A counterweight to plot engineering. Study it; don't imitate it.", bookId: "deewar" },
+    stories: [
+      { title: "“The Dead”", author: "James Joyce", what: "Week 1. Free on Project Gutenberg.", why: "One of the great endings. Read the final section twice.", url: gutenberg("dubliners joyce") },
+      { title: "“Tenth of December”", author: "George Saunders", what: "Week 2. Widely anthologised; often online.", why: "A climax that hinges on a choice to help." },
+      { title: "“The Paper Menagerie”", author: "Ken Liu", what: "Week 3. Widely anthologised; often online.", why: "An ending that makes you re-read the whole story." },
+      { title: "“Car Crash While Hitchhiking”", author: "Denis Johnson", what: "Week 4. Widely anthologised; often online.", why: "The last line turns the story back on the narrator." },
     ],
     readingQuestions: [
       "Ivan Ilyich's ending is known from the start. Why does it still hit?",
       "What is the protagonist's final choice in each book you've read this year?",
-      "How does Vinod Kumar Shukla make the ordinary feel strange?",
+      "Which of this month's endings echoes its own opening?",
     ],
     weeks: [
       week(9, 1, "Toward the climax", [
@@ -894,7 +833,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "The Death of Ivan Ilyich, first half"],
         ["writing", 2, "Draft ≈900 words"],
         ["writing", 2.5, "Saturday: draft ≈1,100 words"],
-        ["hindi", 1, "दीवार में एक खिड़की रहती थी — begin"],
+        ["fiction", 1, "Story of the week: “The Dead” (James Joyce)", "One of the great endings. Read the final section twice."],
       ]),
       week(9, 2, "The climax", [
         ["craft", 0.75, "Truby: The Never-Ending Story chapter"],
@@ -903,7 +842,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Finish The Death of Ivan Ilyich"],
         ["writing", 2, "Draft ≈900 words"],
         ["writing", 2.5, "Saturday: draft the climax"],
-        ["hindi", 1, "दीवार में एक खिड़की रहती थी — continue"],
+        ["fiction", 1, "Story of the week: “Tenth of December” (George Saunders)", "A climax that hinges on a choice to help."],
       ]),
       week(9, 3, "The ending", [
         ["craft", 0.75, "Re-read your opening chapter (read only, don't edit). What should the last image echo?"],
@@ -912,7 +851,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Re-read the endings of The Remains of the Day and The Great Gatsby"],
         ["writing", 2, "Draft ≈900 words"],
         ["writing", 2.5, "Saturday: draft the resolution"],
-        ["hindi", 1, "दीवार में एक खिड़की रहती थी — continue"],
+        ["fiction", 1, "Story of the week: “The Paper Menagerie” (Ken Liu)", "An ending that makes you re-read the whole story."],
       ]),
       week(9, 4, "Type “The End”", [
         ["craft", 0.75, "Skim your “fix later” list. Don't act on it yet."],
@@ -921,7 +860,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Read anything you like, for pleasure"],
         ["writing", 2, "Draft the final pages"],
         ["writing", 2.5, "Finish the draft. Back it up in two places. Don't re-read it."],
-        ["hindi", 1, "दीवार में एक खिड़की रहती थी — continue"],
+        ["fiction", 1, "Story of the week: “Car Crash While Hitchhiking” (Denis Johnson)", "The last line turns the story back on the narrator."],
       ]),
     ],
     deliverables: [
@@ -946,7 +885,7 @@ export const MONTHS: Month[] = [
     title: "Rest, Re-read, Diagnose",
     question: "How do you see your own draft clearly enough to fix it?",
     summary:
-      "The draft sits in a drawer for a week while you write a new short story and your third Hindi probe. Then you read it as a reader, outline it backwards, diagnose the big problems, and write a revision plan. Big problems come before small ones: never polish a scene you might cut.",
+      "The draft sits in a drawer for a week while you write a new short story. Then you read it as a reader, outline it backwards, diagnose the big problems, and write a revision plan. Big problems come before small ones: never polish a scene you might cut.",
     concepts: [
       { term: "Drawer time", explain: "Distance turns you from author into reader. Even one or two weeks helps." },
       { term: "The reader read-through", explain: "Read the whole draft in one or two sittings without fixing anything. Note in the margin where you're bored, confused or moved." },
@@ -965,9 +904,11 @@ export const MONTHS: Month[] = [
     fiction: [
       { title: "Unaccustomed Earth", author: "Jhumpa Lahiri", what: "Title story + “Hell-Heaven”.", why: "Long stories that are nearly novellas. Study their proportions.", bookId: "unaccustomed" },
     ],
-    hindi: [
-      { title: "दीवार में एक खिड़की रहती थी", author: "विनोद कुमार शुक्ल", what: "Continue.", why: "Keep reading slowly.", bookId: "deewar" },
-      { title: "Hindi probe #3", what: "Write during drawer week (week 1).", why: "Third of four. You now have craft you didn't have in probe #1." },
+    stories: [
+      { title: "“In the Cemetery Where Al Jolson Is Buried”", author: "Amy Hempel", what: "Week 1. Widely anthologised; often online.", why: "Grief through compression and omission. What did she cut?" },
+      { title: "“Revelation”", author: "Flannery O'Connor", what: "Week 2. Widely anthologised; often online.", why: "A character's self-image cracked by one encounter." },
+      { title: "“Sticks”", author: "George Saunders", what: "Week 3. Widely anthologised; often online.", why: "A whole life in under 400 words. A lesson in proportion." },
+      { title: "“The Husband Stitch”", author: "Carmen Maria Machado", what: "Week 4. Widely anthologised; often online.", why: "Old forms and folk tales reworked. Notice the structure." },
     ],
     readingQuestions: [
       "How do Lahiri's long stories pace themselves differently from her short ones?",
@@ -980,7 +921,8 @@ export const MONTHS: Month[] = [
         ["reflect", 0.5, "Don't open the draft. Write down what you remember as its strongest and weakest parts."],
         ["fiction", 2.5, "Lahiri: “Unaccustomed Earth”"],
         ["writing", 2.5, "Story #7: draft a new short story (≈2,000 words)", "Keep your hand in while the draft rests."],
-        ["hindi", 3, "Hindi probe #3: write a 1,000–1,500-word Hindi story"],
+        ["writing", 2, "Story #7: finish the draft", "Done beats good. You'll revise it in Month 11."],
+        ["fiction", 1, "Story of the week: “In the Cemetery Where Al Jolson Is Buried” (Amy Hempel)", "Grief through compression and omission. What did she cut?"],
       ]),
       week(10, 2, "Read as a reader", [
         ["craft", 0.75, "Scofield: on the first read-through"],
@@ -988,8 +930,8 @@ export const MONTHS: Month[] = [
         ["reflect", 0.5, "Write a one-page “reader's report” on your own draft"],
         ["fiction", 2.5, "Lahiri: “Hell-Heaven”"],
         ["writing", 3, "Read the whole draft in one or two sittings", "Margin marks only: B = bored, C = confused, ! = alive. No fixing."],
-        ["writing", 1.5, "Finish Story #7"],
-        ["hindi", 1, "दीवार में एक खिड़की रहती थी — continue"],
+        ["writing", 1.5, "Read Story #7 aloud; fix only its ending"],
+        ["fiction", 1, "Story of the week: “Revelation” (Flannery O'Connor)", "A character's self-image cracked by one encounter."],
       ]),
       week(10, 3, "Reverse outline and diagnosis", [
         ["craft", 0.75, "Scofield: diagnosing structure"],
@@ -998,7 +940,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "A story or novella of your choice"],
         ["writing", 2.5, "Reverse outline: one line per scene (what changes, POV, words)"],
         ["writing", 2, "Diagnosis: list the top five problems, biggest first", "Typical ones: weak motivation, saggy middle, unclear stakes, unearned climax, too much backstory."],
-        ["hindi", 1, "दीवार में एक खिड़की रहती थी — continue"],
+        ["fiction", 1, "Story of the week: “Sticks” (George Saunders)", "A whole life in under 400 words. A lesson in proportion."],
       ]),
       week(10, 4, "Revision plan", [
         ["craft", 0.75, "Scofield: making a revision plan"],
@@ -1007,11 +949,11 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "A story or novella of your choice"],
         ["writing", 2, "Write the revision plan", "For each of the five problems: what will change, in which scenes, in what order."],
         ["writing", 2.5, "Begin structural revision: cut, merge or add scenes per the plan"],
-        ["hindi", 1, "दीवार में एक खिड़की रहती थी — continue"],
+        ["fiction", 1, "Story of the week: “The Husband Stitch” (Carmen Maria Machado)", "Old forms and folk tales reworked. Notice the structure."],
       ]),
     ],
     deliverables: [
-      { id: "m10d1", text: "Hindi probe #3 written" },
+      { id: "m10d1", text: "Four story-of-the-week notes on compression and proportion" },
       { id: "m10d2", text: "Story #7 drafted" },
       { id: "m10d3", text: "Reader's report on your own draft" },
       { id: "m10d4", text: "Reverse outline of the whole novella" },
@@ -1052,13 +994,15 @@ export const MONTHS: Month[] = [
     fiction: [
       { title: "Free choice — a scouting novel", what: "Pick one in the direction you're leaning. Literary: The God of Small Things (Arundhati Roy). Psychological/crime: In the Woods (Tana French). Speculative: Stories of Your Life and Others (Ted Chiang).", why: "Read the shelf you might want to write for in Year 2.", bookId: "free-choice" },
     ],
-    hindi: [
-      { title: "दीवार में एक खिड़की रहती थी", author: "विनोद कुमार शुक्ल", what: "Finish (weeks 1–2).", why: "Do the exercise: an ordinary object given extraordinary meaning, never explained.", bookId: "deewar" },
-      { title: "Re-read your Hindi probes", what: "Weeks 3–4: re-read probes #1–3 and lightly revise the best one.", why: "See how your Hindi voice has changed." },
+    stories: [
+      { title: "“The Yellow Wallpaper”", author: "Charlotte Perkins Gilman", what: "Week 1. Free on Project Gutenberg.", why: "A narrator's mind coming apart, told in journal entries.", url: gutenberg("yellow wallpaper") },
+      { title: "“In a Grove”", author: "Ryūnosuke Akutagawa", what: "Week 2. Widely anthologised; often online.", why: "Several testimonies, no verdict. How much can a reader assemble alone?" },
+      { title: "“Lamb to the Slaughter”", author: "Roald Dahl", what: "Week 3. Widely anthologised; often online.", why: "Plot and dark comedy in a few pages. Every object pays off." },
+      { title: "“The Rocking-Horse Winner”", author: "D.H. Lawrence", what: "Week 4. Widely anthologised; often online.", why: "A fable's design with a realist surface." },
     ],
     readingQuestions: [
       "Your scouting novel: what does this kind of book promise its readers?",
-      "Compare your three Hindi probes. Which one has the most life, and why?",
+      "Which story of the week from this year would you most like to have written? Why?",
     ],
     weeks: [
       week(11, 1, "Structural revision", [
@@ -1068,7 +1012,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Scouting novel — begin"],
         ["writing", 2, "Draft 2: rebuild per the plan"],
         ["writing", 2.5, "Saturday: Draft 2 — the biggest structural change first"],
-        ["hindi", 1, "दीवार में एक खिड़की रहती थी — continue"],
+        ["fiction", 1, "Story of the week: “The Yellow Wallpaper” (Charlotte Perkins Gilman)", "A narrator's mind coming apart, told in journal entries."],
       ]),
       week(11, 2, "Motivation and proportion", [
         ["craft", 0.75, "Browne & King: Characterization and Exposition + Proportion"],
@@ -1077,7 +1021,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Scouting novel — continue"],
         ["writing", 2, "Draft 2: strengthen setups for each major choice"],
         ["writing", 2.5, "Saturday: Draft 2 — fix proportion (cut over-long beginnings and transitions)"],
-        ["hindi", 1, "Finish दीवार में एक खिड़की रहती थी"],
+        ["fiction", 1, "Story of the week: “In a Grove” (Ryūnosuke Akutagawa)", "Several testimonies, no verdict. How much can a reader assemble alone?"],
       ]),
       week(11, 3, "Finish Draft 2", [
         ["craft", 0.75, "Browne & King: Point of View chapter (check POV consistency)"],
@@ -1086,7 +1030,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Scouting novel — continue"],
         ["writing", 2, "Draft 2: continuity pass with your bible"],
         ["writing", 2.5, "Saturday: finish Draft 2"],
-        ["hindi", 1, "Re-read Hindi probes #1–3"],
+        ["fiction", 1, "Story of the week: “Lamb to the Slaughter” (Roald Dahl)", "Plot and dark comedy in a few pages. Every object pays off."],
       ]),
       week(11, 4, "Send it out", [
         ["craft", 0.75, "Read Draft 2's first chapter aloud and fix only what makes you wince"],
@@ -1095,14 +1039,14 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Scouting novel — finish or continue"],
         ["writing", 2, "Revise Story #7"],
         ["writing", 2.5, "Revise your best Month 1–4 story with everything you now know"],
-        ["hindi", 1, "Lightly revise your best Hindi probe"],
+        ["fiction", 1, "Story of the week: “The Rocking-Horse Winner” (D.H. Lawrence)", "A fable's design with a realist surface."],
       ]),
     ],
     deliverables: [
       { id: "m11d1", text: "Draft 2 of the novella complete" },
       { id: "m11d2", text: "Draft 2 sent to 2–3 beta readers with specific questions" },
       { id: "m11d3", text: "Story #7 and one earlier story revised" },
-      { id: "m11d4", text: "Best Hindi probe revised" },
+      { id: "m11d4", text: "Four story-of-the-week notes" },
     ],
     selfCheck: [
       "Are the top five problems from your plan actually fixed?",
@@ -1121,14 +1065,14 @@ export const MONTHS: Month[] = [
     title: "Polish, Submit, Plan Year Two",
     question: "How do you finish the year as a working writer?",
     summary:
-      "You triage the beta feedback, produce Draft 3, line-edit your two best short stories and submit them to magazines. You write your fourth Hindi probe, then look back at the year and decide Year 2, including whether and how Hindi joins properly.",
+      "You triage the beta feedback, produce Draft 3, line-edit your two best short stories and submit them to magazines. Then you look back at the year and decide Year 2.",
     concepts: [
       { term: "Feedback triage", explain: "Sort notes into: everyone said it (fix), one person said it and you agree (fix), one person said it and you don't (note it), and taste (ignore)." },
       { term: "Line editing", explain: "Rhythm, word choice, repetition, filter words, clichés. Cut 10% if you can. Read it aloud." },
       { term: "Submissions", explain: "Literary magazines take short stories. Read what a magazine publishes before you submit. Track every submission. Simultaneous submissions are usually allowed, but check each magazine's guidelines." },
       { term: "Rejection is the default", explain: "Most good stories are rejected many times. Treat submission as a numbers process, not a verdict." },
       { term: "Paths to publication", explain: "Traditional (agents → publishers), independent presses, magazines and contests, self-publishing. Novellas are hard to sell to big publishers but suit contests, small presses and indie routes. Learn the landscape before choosing." },
-      { term: "Year 2 decisions", explain: "Novel or more short fiction? Which genre? Hindi as a real track? Make the decision from your actual work, not from wishes." },
+      { term: "Year 2 decisions", explain: "Novel or more short fiction? Which genre? Add the Hindi track? Make the decision from your actual work, not from wishes." },
     ],
     craft: [
       { title: "Self-Editing for Fiction Writers", author: "Renni Browne & Dave King", what: "Chapters: Breaking Up Is Easy to Do, Once Is Usually Enough, Sophistication, Voice.", why: "The final line-level polish.", bookId: "browne-king" },
@@ -1139,13 +1083,15 @@ export const MONTHS: Month[] = [
     fiction: [
       { title: "Magazines you'll submit to", what: "Read 3–4 recently published stories from each magazine you're considering.", why: "Submitting blind wastes your work." },
     ],
-    hindi: [
-      { title: "Hindi probe #4", what: "Week 3.", why: "The last one. Then compare all four." },
-      { title: "Contemporary Hindi scouting", what: "One story or chapter by a contemporary writer: Geetanjali Shree, Manav Kaul, or Divya Prakash Dubey.", why: "How Hindi fiction sounds now, and what a Year 2 Hindi track might look like.", bookId: "contemporary-hindi" },
+    stories: [
+      { title: "“A Small, Good Thing”", author: "Raymond Carver", what: "Week 1. Widely anthologised; often online.", why: "A long story about grief that ends with bread. How does it earn that?" },
+      { title: "“Gimpel the Fool”", author: "Isaac Bashevis Singer", what: "Week 2. Widely anthologised; often online.", why: "A voice so particular it carries the whole story." },
+      { title: "Your favourite story of the year", what: "Week 3. Widely anthologised; often online.", why: "Re-read the one that stayed with you most and write down why." },
+      { title: "The Lottery (re-read)", author: "Shirley Jackson", what: "Week 4. Widely anthologised; often online.", why: "Your first story of the week. What do you see now that you couldn't in Month 1?" },
     ],
     readingQuestions: [
       "What do the magazines you like publish? Does your work belong there?",
-      "Across your four Hindi probes, what changed?",
+      "Re-reading your first story of the week, what do you notice now?",
     ],
     weeks: [
       week(12, 1, "Feedback triage", [
@@ -1155,7 +1101,7 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Research 5 magazines; read their recent stories"],
         ["writing", 2, "Draft 3: fix what everyone flagged"],
         ["writing", 2.5, "Saturday: Draft 3 continued"],
-        ["hindi", 1, "Contemporary Hindi scouting read"],
+        ["fiction", 1, "Story of the week: “A Small, Good Thing” (Raymond Carver)", "A long story about grief that ends with bread. How does it earn that?"],
       ]),
       week(12, 2, "Draft 3 and line edit", [
         ["craft", 0.75, "Browne & King: Sophistication + Voice"],
@@ -1164,37 +1110,38 @@ export const MONTHS: Month[] = [
         ["fiction", 2.5, "Read more from your shortlisted magazines"],
         ["writing", 2, "Draft 3: line edit (read aloud, cut 10%)"],
         ["writing", 2.5, "Saturday: finish Draft 3"],
-        ["hindi", 1, "Re-read your four best Hindi pages from the year; note your Hindi voice"],
+        ["fiction", 1, "Story of the week: “Gimpel the Fool” (Isaac Bashevis Singer)", "A voice so particular it carries the whole story."],
       ]),
-      week(12, 3, "Polish stories; Hindi probe #4", [
+      week(12, 3, "Polish and prepare", [
         ["craft", 0.75, "Read submission guidelines for your shortlist; draft a short cover letter"],
         ["lecture", 0.75, "Sanderson: business lecture, part 3"],
         ["reflect", 0.5, "Set up a submissions tracker (story · magazine · date · result)"],
         ["fiction", 2.5, "Free reading"],
         ["writing", 2.5, "Line-edit your two best short stories for submission"],
-        ["hindi", 3, "Hindi probe #4: write a 1,000–1,500-word Hindi story"],
+        ["writing", 2, "Write a short bio and cover letter; format both stories for submission", "Standard manuscript format, with your name and word count on page 1."],
+        ["fiction", 1, "Re-read your favourite story of the week", "Re-read the one that stayed with you most and write down why."],
       ]),
       week(12, 4, "Submit and look back", [
         ["craft", 0.75, "Year review", "Re-read Story #1, then your best recent story. Write down what changed."],
-        ["lecture", 0.75, "Year 2 plan", "Novel or short fiction? Which genre? Is Hindi a real track? Weekly hours?"],
+        ["lecture", 0.75, "Year 2 plan", "Novel or short fiction? Which genre? Weekly hours? Add the Hindi track?"],
         ["reflect", 0.5, "Write a one-page letter to yourself to open in a year"],
         ["fiction", 2.5, "Read for pleasure. You've earned it."],
         ["writing", 1, "Submit two stories"],
         ["writing", 3.5, "Start something new: the first pages of Year 2's project"],
-        ["hindi", 1, "Compare all four Hindi probes; decide Hindi's place in Year 2"],
+        ["fiction", 1, "Re-read “The Lottery”, your first story of the week", "Your first story of the week. What do you see now that you couldn't in Month 1?"],
       ]),
     ],
     deliverables: [
       { id: "m12d1", text: "Draft 3 of the novella" },
       { id: "m12d2", text: "Two short stories submitted to magazines" },
       { id: "m12d3", text: "Submissions tracker set up" },
-      { id: "m12d4", text: "Hindi probe #4 written; all four compared" },
+      { id: "m12d4", text: "Bio, cover letter and formatted manuscripts ready" },
       { id: "m12d5", text: "Year review + Year 2 plan" },
     ],
     selfCheck: [
       "Can you write a story now that you couldn't have written in Month 1?",
       "Do you know what you want to write next?",
-      "Does Hindi feel like a language you want to write in, based on the evidence of your four probes?",
+      "Is there a reason to add the Hindi track in Year 2? Decide from what you want to write, not from guilt.",
     ],
     pitfalls: [
       "Holding back submissions until the stories are perfect. They never will be.",
@@ -1203,13 +1150,12 @@ export const MONTHS: Month[] = [
   },
 ];
 
-export const ALL_TASKS: Task[] = MONTHS.flatMap((m) => m.weeks.flatMap((w) => w.tasks));
-export const ALL_DELIVERABLES = MONTHS.flatMap((m) => m.deliverables);
-
-export function getMonth(n: number): Month | undefined {
-  return MONTHS.find((m) => m.n === n);
-}
-
-export function weekHours(w: Week): number {
-  return w.tasks.reduce((s, t) => s + t.hours, 0);
-}
+export const MONTHS: Month[] = RAW.map(({ craft, lectures, fiction, stories, ...m }) => ({
+  ...m,
+  shelves: [
+    { label: "Craft books", items: craft },
+    { label: "Lectures & podcasts", items: lectures },
+    { label: "Fiction", items: fiction },
+    { label: "Story of the week · 1 h", items: stories },
+  ],
+}));

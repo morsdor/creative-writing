@@ -1,9 +1,11 @@
+export type TrackId = "english" | "hindi";
+
 export type Category =
   | "craft"
   | "lecture"
   | "fiction"
   | "writing"
-  | "hindi"
+  | "language"
   | "reflect";
 
 export interface Task {
@@ -29,8 +31,14 @@ export interface Resource {
   /** Why it is here — what to learn from it */
   why: string;
   url?: string;
-  /** Matches an id in books.ts, if this resource is a tracked book */
+  /** Matches an id in the track's books, if this resource is a tracked book */
   bookId?: string;
+}
+
+/** A labelled group of resources on a month page (craft books, lectures, fiction…). */
+export interface Shelf {
+  label: string;
+  items: Resource[];
 }
 
 export interface Concept {
@@ -47,13 +55,12 @@ export interface Month {
   n: number;
   quarter: 1 | 2 | 3 | 4;
   title: string;
+  /** Optional title in the track's language, shown under the main title */
+  altTitle?: string;
   question: string;
   summary: string;
   concepts: Concept[];
-  craft: Resource[];
-  lectures: Resource[];
-  fiction: Resource[];
-  hindi: Resource[];
+  shelves: Shelf[];
   readingQuestions: string[];
   weeks: Week[];
   deliverables: Deliverable[];
@@ -70,7 +77,7 @@ export interface Quarter {
   goal: string;
 }
 
-export type BookKind = "craft" | "fiction" | "hindi";
+export type BookKind = "craft" | "fiction" | "language";
 export type BookPriority = "buy-first" | "buy-later" | "optional" | "free-online";
 
 export interface Book {
@@ -83,4 +90,35 @@ export interface Book {
   length: string;
   note: string;
   url?: string;
+}
+
+export interface BudgetLine {
+  category: Category;
+  hours: number;
+  label: string;
+  note: string;
+}
+
+export interface Track {
+  id: TrackId;
+  /** "English" / "Hindi" */
+  name: string;
+  /** Name in its own script, e.g. "हिंदी" */
+  nativeName: string;
+  tagline: string;
+  /** Shown on the dashboard before anything is ticked */
+  intro: string;
+  budget: BudgetLine[];
+  rhythm: { day: string; hours: string; what: string }[];
+  quarters: Quarter[];
+  months: Month[];
+  books: Book[];
+  bookGroups: { kind: BookKind; title: string; blurb: string }[];
+  guide: {
+    headline: string;
+    intro: string;
+    outcomes: [string, string][];
+    rules: { title: string; body: string }[];
+    cards: { eyebrow: string; body: string; sub?: string }[];
+  };
 }

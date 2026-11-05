@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { Month, Week } from "@/lib/types";
-import { actions, useTracker } from "@/lib/store";
+import type { Month, TrackId, Week } from "@/lib/types";
+import { trackActions, useTracker } from "@/lib/store";
 import { logKey, weekProgress } from "@/lib/progress";
 import { CategoryBadge, Checkbox, ProgressBar, formatHours } from "@/components/ui";
 
-export function WeekCard({ month, week, highlight = false, showMonth = false }: { month: Month; week: Week; highlight?: boolean; showMonth?: boolean }) {
-  const { state } = useTracker();
+export function WeekCard({ track, month, week, highlight = false, showMonth = false }: { track: TrackId; month: Month; week: Week; highlight?: boolean; showMonth?: boolean }) {
+  const { state } = useTracker(track);
+  const actions = trackActions(track);
   const p = weekProgress(state, week);
   const allDone = p.done === p.total;
 
@@ -59,13 +60,14 @@ export function WeekCard({ month, week, highlight = false, showMonth = false }: 
         })}
       </ul>
 
-      <WeekLogRow month={month.n} week={week.n} />
+      <WeekLogRow track={track} month={month.n} week={week.n} />
     </article>
   );
 }
 
-function WeekLogRow({ month, week }: { month: number; week: number }) {
-  const { state } = useTracker();
+function WeekLogRow({ track, month, week }: { track: TrackId; month: number; week: number }) {
+  const { state } = useTracker(track);
+  const actions = trackActions(track);
   const key = logKey(month, week);
   const log = state.logs[key] ?? {};
   const [open, setOpen] = useState(false);

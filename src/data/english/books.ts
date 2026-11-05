@@ -1,6 +1,4 @@
-import type { Book } from "../lib/types";
-
-const HINDWI = "https://www.hindwi.org/";
+import type { Book } from "../../lib/types.ts";
 
 export const BOOKS: Book[] = [
   /* ----------------------------- Craft ----------------------------- */
@@ -26,25 +24,5 @@ export const BOOKS: Book[] = [
   { id: "ivan", title: "The Death of Ivan Ilyich", author: "Leo Tolstoy", kind: "fiction", months: [9], priority: "free-online", length: "≈90 pp", note: "Free on Project Gutenberg.", url: "https://www.gutenberg.org/ebooks/search/?query=death+of+ivan+ilyich" },
   { id: "unaccustomed", title: "Unaccustomed Earth", author: "Jhumpa Lahiri", kind: "fiction", months: [10], priority: "buy-later", length: "Title story + “Hell-Heaven”", note: "Long stories with novella-like proportions." },
   { id: "free-choice", title: "Free choice — scouting novel", author: "You choose", kind: "fiction", months: [11], priority: "optional", length: "One novel", note: "Literary: The God of Small Things. Psychological/crime: In the Woods (Tana French). Speculative: Stories of Your Life and Others (Ted Chiang)." },
-
-  /* ----------------------------- Hindi ----------------------------- */
-  { id: "premchand", title: "कफ़न · पूस की रात · ईदगाह · बड़े भाई साहब", author: "प्रेमचंद", kind: "hindi", months: [1], priority: "free-online", length: "4 short stories", note: "Free on Hindwi.", url: HINDWI },
-  { id: "guleri", title: "उसने कहा था", author: "चंद्रधर शर्मा गुलेरी", kind: "hindi", months: [2], priority: "free-online", length: "Short story", note: "Flashback structure, 1915.", url: HINDWI },
-  { id: "renu-stories", title: "पंचलाइट", author: "फणीश्वरनाथ रेणु", kind: "hindi", months: [2], priority: "free-online", length: "Short story", note: "Comic plot around one object.", url: HINDWI },
-  { id: "sahni-stories", title: "चीफ़ की दावत", author: "भीष्म साहनी", kind: "hindi", months: [3], priority: "free-online", length: "Short story", note: "Character revealed through choices.", url: HINDWI },
-  { id: "verma-parinde", title: "परिंदे", author: "निर्मल वर्मा", kind: "hindi", months: [4], priority: "free-online", length: "Long short story", note: "Interiority and silence.", url: HINDWI },
-  { id: "rakesh-stories", title: "मिस पाल · मलबे का मालिक", author: "मोहन राकेश", kind: "hindi", months: [4, 8], priority: "free-online", length: "2 short stories", note: "Outsider POV; Partition and memory.", url: HINDWI },
-  { id: "suraj", title: "सूरज का सातवाँ घोड़ा", author: "धर्मवीर भारती", kind: "hindi", months: [5, 6], priority: "buy-first", length: "≈100 pp", note: "A frame narrative about how stories are built." },
-  { id: "mitro", title: "मित्रो मरजानी", author: "कृष्णा सोबती", kind: "hindi", months: [7], priority: "buy-later", length: "≈90 pp", note: "Voice and dialogue." },
-  { id: "priyamvada", title: "वापसी", author: "उषा प्रियंवदा", kind: "hindi", months: [8], priority: "free-online", length: "Short story", note: "Family and belonging.", url: HINDWI },
-  { id: "uday-prakash", title: "तिरिछ", author: "उदय प्रकाश", kind: "hindi", months: [8], priority: "buy-later", length: "Long story", note: "Escalating dread. In his collection तिरिछ." },
-  { id: "deewar", title: "दीवार में एक खिड़की रहती थी", author: "विनोद कुमार शुक्ल", kind: "hindi", months: [9, 10, 11], priority: "buy-later", length: "≈170 pp", note: "The ordinary made extraordinary. Study it; don't imitate it." },
-  { id: "contemporary-hindi", title: "Contemporary Hindi scouting", author: "Geetanjali Shree · Manav Kaul · Divya Prakash Dubey", kind: "hindi", months: [12], priority: "optional", length: "One story or chapter", note: "How Hindi fiction sounds now. Groundwork for Year 2." },
+  { id: "anthology", title: "A big short-story anthology (for the story of the week)", author: "Any editor", kind: "fiction", months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], priority: "optional", length: "48 stories over the year", note: "Most stories of the week are online or in any large anthology (Norton, Oxford, Penguin). A library card covers the rest. If you can't find one, swap in any story from the same anthology." },
 ];
-
-export const PRIORITY_LABEL: Record<Book["priority"], string> = {
-  "buy-first": "Buy first",
-  "buy-later": "Buy during the year",
-  optional: "Optional",
-  "free-online": "Free online",
-};

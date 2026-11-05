@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import type { Month } from "@/lib/types";
-import { MONTHS, QUARTERS } from "@/data/curriculum";
-import { actions, useTracker } from "@/lib/store";
+import type { TrackId } from "@/lib/types";
+import { getMonth, getTrack } from "@/data/tracks";
+import { trackActions, useTracker } from "@/lib/store";
 import { monthProgress, nextUp } from "@/lib/progress";
 import { Card, Checkbox, Eyebrow, H2, ProgressBar, ResourceList, formatHours } from "@/components/ui";
 import { WeekCard } from "@/components/WeekCard";
@@ -16,26 +16,30 @@ const SECTIONS = [
   ["notes", "Notes"],
 ] as const;
 
-export function MonthView({ month }: { month: Month }) {
-  const { state } = useTracker();
+export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
+  const track = getTrack(trackId);
+  const month = getMonth(track, n)!;
+  const { state } = useTracker(trackId);
+  const actions = trackActions(trackId);
   const p = monthProgress(state, month);
-  const next = nextUp(state);
-  const quarter = QUARTERS.find((q) => q.n === month.quarter)!;
-  const prev = MONTHS.find((m) => m.n === month.n - 1);
-  const nxt = MONTHS.find((m) => m.n === month.n + 1);
+  const next = nextUp(state, track);
+  const quarter = track.quarters.find((q) => q.n === month.quarter)!;
+  const prev = getMonth(track, month.n - 1);
+  const nxt = getMonth(track, month.n + 1);
+  const base = `/${trackId}`;
 
   return (
     <div className="space-y-10">
       {/* Month strip */}
       <nav aria-label="Months" className="-mx-4 overflow-x-auto px-4">
         <ol className="flex min-w-max gap-1.5">
-          {MONTHS.map((m) => {
+          {track.months.map((m) => {
             const mp = monthProgress(state, m);
             const active = m.n === month.n;
             return (
               <li key={m.n}>
                 <Link
-                  href={`/month/${m.n}`}
+                  href={`${base}/month/${m.n}`}
                   className={`relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-md border text-sm tabular-nums transition-colors ${
                     active ? "border-ink bg-ink text-paper" : "border-line bg-card hover:border-muted"
                   }`}
@@ -55,9 +59,12 @@ export function MonthView({ month }: { month: Month }) {
       {/* Header */}
       <header className="space-y-4">
         <Eyebrow>
-          Quarter {quarter.n} · {quarter.title} — Month {month.n} of 12
+          {track.name} track · Q{quarter.n} {quarter.title} — Month {month.n} of 12
         </Eyebrow>
-        <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{month.title}</h1>
+        <div>
+          <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{month.title}</h1>
+          {month.altTitle && <p className="mt-1 font-serif text-2xl text-muted" lang="hi">{month.altTitle}</p>}
+        </div>
         <p className="max-w-3xl font-serif text-xl italic leading-relaxed text-muted">{month.question}</p>
         <p className="max-w-3xl leading-relaxed">{month.summary}</p>
 
@@ -87,7 +94,7 @@ export function MonthView({ month }: { month: Month }) {
       </header>
 
       {/* Section jump links */}
-      <nav aria-label="On this page" className="sticky top-0 z-20 sm:top-[57px] -mx-4 border-y border-line bg-paper/90 px-4 py-2 backdrop-blur">
+      <nav aria-label="On this page" className="sticky top-0 z-20 -mx-4 border-y border-line bg-paper/90 px-4 py-2 backdrop-blur sm:top-[57px]">
         <ul className="flex gap-1 overflow-x-auto text-sm">
           {SECTIONS.map(([id, label]) => (
             <li key={id}>
@@ -116,22 +123,14 @@ export function MonthView({ month }: { month: Month }) {
       <section className="space-y-4">
         <H2 id="resources">Read &amp; watch</H2>
         <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <Eyebrow>Craft books</Eyebrow>
-            <div className="mt-3"><ResourceList items={month.craft} /></div>
-          </Card>
-          <Card>
-            <Eyebrow>Lectures &amp; podcasts</Eyebrow>
-            <div className="mt-3"><ResourceList items={month.lectures} /></div>
-          </Card>
-          <Card>
-            <Eyebrow>Fiction</Eyebrow>
-            <div className="mt-3"><ResourceList items={month.fiction} /></div>
-          </Card>
-          <Card>
-            <Eyebrow>Hindi · the hedge (1 h/week)</Eyebrow>
-            <div className="mt-3"><ResourceList items={month.hindi} /></div>
-          </Card>
+          {month.shelves.map((s) => (
+            <Card key={s.label}>
+              <Eyebrow>{s.label}</Eyebrow>
+              <div className="mt-3">
+                <ResourceList items={s.items} />
+              </div>
+            </Card>
+          ))}
         </div>
         <Card>
           <Eyebrow>Questions to ask while reading</Eyebrow>
@@ -151,7 +150,7 @@ export function MonthView({ month }: { month: Month }) {
         </div>
         <div className="space-y-5">
           {month.weeks.map((w) => (
-            <WeekCard key={w.n} month={month} week={w} highlight={next?.month.n === month.n && next.week.n === w.n} />
+            <WeekCard key={w.n} track={trackId} month={month} week={w} highlight={next?.month.n === month.n && next.week.n === w.n} />
           ))}
         </div>
       </section>
@@ -208,7 +207,7 @@ export function MonthView({ month }: { month: Month }) {
       {/* Prev / next */}
       <nav className="flex justify-between gap-4 border-t border-line pt-6 text-sm">
         {prev ? (
-          <Link href={`/month/${prev.n}`} className="group">
+          <Link href={`${base}/month/${prev.n}`} className="group">
             <span className="text-muted">← Month {prev.n}</span>
             <span className="block font-serif text-lg group-hover:text-accent">{prev.title}</span>
           </Link>
@@ -216,7 +215,7 @@ export function MonthView({ month }: { month: Month }) {
           <span />
         )}
         {nxt && (
-          <Link href={`/month/${nxt.n}`} className="group text-right">
+          <Link href={`${base}/month/${nxt.n}`} className="group text-right">
             <span className="text-muted">Month {nxt.n} →</span>
             <span className="block font-serif text-lg group-hover:text-accent">{nxt.title}</span>
           </Link>

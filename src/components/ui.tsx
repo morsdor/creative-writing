@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 import type { Category, Resource } from "@/lib/types";
-import { CATEGORY_LABEL } from "@/data/curriculum";
+import { CATEGORY_LABEL } from "@/data/helpers";
 
 export const CAT_TEXT: Record<Category, string> = {
   writing: "text-cat-writing",
   fiction: "text-cat-fiction",
   craft: "text-cat-craft",
   lecture: "text-cat-lecture",
-  hindi: "text-cat-hindi",
+  language: "text-cat-language",
   reflect: "text-cat-reflect",
 };
 
@@ -16,7 +16,7 @@ export const CAT_BG: Record<Category, string> = {
   fiction: "bg-cat-fiction",
   craft: "bg-cat-craft",
   lecture: "bg-cat-lecture",
-  hindi: "bg-cat-hindi",
+  language: "bg-cat-language",
   reflect: "bg-cat-reflect",
 };
 

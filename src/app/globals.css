@@ -15,7 +15,7 @@
   --cat-fiction: #2b6b66;
   --cat-craft: #3f51a3;
   --cat-lecture: #7a4ea3;
-  --cat-hindi: #a8345a;
+  --cat-language: #a8345a;
   --cat-reflect: #6b645a;
 }
 
@@ -35,7 +35,7 @@
     --cat-fiction: #6cc0b8;
     --cat-craft: #9aa8f0;
     --cat-lecture: #c3a0ea;
-    --cat-hindi: #ee8db0;
+    --cat-language: #ee8db0;
     --cat-reflect: #b3aa9b;
   }
 }
@@ -55,7 +55,7 @@
   --color-cat-fiction: var(--cat-fiction);
   --color-cat-craft: var(--cat-craft);
   --color-cat-lecture: var(--cat-lecture);
-  --color-cat-hindi: var(--cat-hindi);
+  --color-cat-language: var(--cat-language);
   --color-cat-reflect: var(--cat-reflect);
 
   --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Noto Serif Devanagari", "Kohinoor Devanagari", serif;

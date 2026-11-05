@@ -26,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3">
             <Link href="/" className="flex items-baseline gap-2">
               <span className="font-serif text-xl font-semibold tracking-tight">Fiction Year</span>
-              <span className="hidden text-xs text-muted sm:inline">English track · 10 h/week</span>
+              <span className="hidden text-xs text-muted sm:inline">English · हिंदी · 10 h/week</span>
             </Link>
             <Nav />
           </div>

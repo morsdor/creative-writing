@@ -1,10 +1,12 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
+import type { TrackId } from "@/lib/types";
 
 /**
- * All progress lives in the browser's localStorage under one key.
- * Use Settings → Export to back it up or move it to another device.
+ * Progress lives in the browser's localStorage, one key per track, so the
+ * English and Hindi tracks never share ticks, logs or notes.
+ * Settings → Export saves both tracks in one file.
  */
 
 export type BookStatus = "todo" | "have" | "reading" | "done";
@@ -27,7 +29,11 @@ export interface TrackerState {
   notes: Record<string, string>;
 }
 
-const KEY = "fiction-year:v1";
+const KEYS: Record<TrackId, string> = {
+  english: "fiction-year:english:v1",
+  hindi: "fiction-year:hindi:v1",
+};
+const TRACK_LIST = Object.keys(KEYS) as TrackId[];
 
 export const EMPTY_STATE: TrackerState = {
   version: 1,
@@ -38,106 +44,133 @@ export const EMPTY_STATE: TrackerState = {
   notes: {},
 };
 
-let cache: TrackerState | null = null;
-const listeners = new Set<() => void>();
+const cache = new Map<TrackId, TrackerState>();
+const listeners = new Map<TrackId, Set<() => void>>();
 
 function normalise(raw: unknown): TrackerState {
   const r = (raw && typeof raw === "object" ? raw : {}) as Partial<TrackerState>;
+  const obj = <T,>(v: unknown) => (v && typeof v === "object" ? (v as T) : ({} as T));
   return {
     version: 1,
     startDate: typeof r.startDate === "string" ? r.startDate : null,
-    done: r.done && typeof r.done === "object" ? r.done : {},
-    books: r.books && typeof r.books === "object" ? r.books : {},
-    logs: r.logs && typeof r.logs === "object" ? r.logs : {},
-    notes: r.notes && typeof r.notes === "object" ? r.notes : {},
+    done: obj(r.done),
+    books: obj(r.books),
+    logs: obj(r.logs),
+    notes: obj(r.notes),
   };
 }
 
-function read(): TrackerState {
-  if (cache) return cache;
+function read(track: TrackId): TrackerState {
+  const hit = cache.get(track);
+  if (hit) return hit;
+  let state = EMPTY_STATE;
   try {
-    const raw = window.localStorage.getItem(KEY);
-    cache = raw ? normalise(JSON.parse(raw)) : EMPTY_STATE;
+    const raw = window.localStorage.getItem(KEYS[track]);
+    if (raw) state = normalise(JSON.parse(raw));
   } catch {
-    cache = EMPTY_STATE;
+    /* blocked or corrupt storage — start empty */
   }
-  return cache;
+  cache.set(track, state);
+  return state;
 }
 
-function write(next: TrackerState) {
-  cache = next;
+function write(track: TrackId, next: TrackerState) {
+  cache.set(track, next);
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(next));
+    window.localStorage.setItem(KEYS[track], JSON.stringify(next));
   } catch {
     /* storage full or blocked — keep in memory */
   }
-  listeners.forEach((l) => l());
+  listeners.get(track)?.forEach((l) => l());
 }
 
-function subscribe(cb: () => void) {
-  listeners.add(cb);
+function subscribe(track: TrackId, cb: () => void) {
+  if (!listeners.has(track)) listeners.set(track, new Set());
+  listeners.get(track)!.add(cb);
   const onStorage = (e: StorageEvent) => {
-    if (e.key === KEY) {
-      cache = null;
+    if (e.key === KEYS[track]) {
+      cache.delete(track);
       cb();
     }
   };
   window.addEventListener("storage", onStorage);
   return () => {
-    listeners.delete(cb);
+    listeners.get(track)?.delete(cb);
     window.removeEventListener("storage", onStorage);
   };
 }
 
 const noopSubscribe = () => () => {};
+const serverSnapshot = () => EMPTY_STATE;
 
-export function useTracker() {
-  const state = useSyncExternalStore(subscribe, read, () => EMPTY_STATE);
+export function useTracker(track: TrackId) {
+  const sub = useCallback((cb: () => void) => subscribe(track, cb), [track]);
+  const snap = useCallback(() => read(track), [track]);
+  const state = useSyncExternalStore(sub, snap, serverSnapshot);
   const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
   return { state, hydrated };
 }
 
 /* ------------------------------ actions ------------------------------ */
 
-export const actions = {
-  toggle(id: string) {
-    const s = read();
-    const done = { ...s.done };
-    if (done[id]) delete done[id];
-    else done[id] = true;
-    write({ ...s, done });
-  },
-  setMany(ids: string[], value: boolean) {
-    const s = read();
-    const done = { ...s.done };
-    for (const id of ids) {
-      if (value) done[id] = true;
-      else delete done[id];
+export function trackActions(track: TrackId) {
+  const update = (fn: (s: TrackerState) => TrackerState) => write(track, fn(read(track)));
+  return {
+    toggle(id: string) {
+      update((s) => {
+        const done = { ...s.done };
+        if (done[id]) delete done[id];
+        else done[id] = true;
+        return { ...s, done };
+      });
+    },
+    setMany(ids: string[], value: boolean) {
+      update((s) => {
+        const done = { ...s.done };
+        for (const id of ids) {
+          if (value) done[id] = true;
+          else delete done[id];
+        }
+        return { ...s, done };
+      });
+    },
+    setBook(id: string, status: BookStatus) {
+      update((s) => ({ ...s, books: { ...s.books, [id]: status } }));
+    },
+    setLog(key: string, patch: WeekLog) {
+      update((s) => ({ ...s, logs: { ...s.logs, [key]: { ...s.logs[key], ...patch } } }));
+    },
+    setNote(month: number, text: string) {
+      update((s) => ({ ...s, notes: { ...s.notes, [String(month)]: text } }));
+    },
+    setStartDate(date: string | null) {
+      update((s) => ({ ...s, startDate: date }));
+    },
+    reset() {
+      write(track, EMPTY_STATE);
+    },
+  };
+}
+
+/* --------------------------- backup (both tracks) --------------------------- */
+
+export function exportAll(): string {
+  const tracks = Object.fromEntries(TRACK_LIST.map((t) => [t, read(t)]));
+  return JSON.stringify({ app: "fiction-year", version: 2, tracks }, null, 2);
+}
+
+/** Accepts a v2 backup (both tracks). Returns the tracks it restored. */
+export function importAll(text: string): TrackId[] {
+  const data = JSON.parse(text) as { version?: number; tracks?: Record<string, unknown> };
+  if (data?.version !== 2 || !data.tracks || typeof data.tracks !== "object") {
+    throw new Error("Not a Fiction Year backup");
+  }
+  const restored: TrackId[] = [];
+  for (const t of TRACK_LIST) {
+    if (t in data.tracks) {
+      write(t, normalise(data.tracks[t]));
+      restored.push(t);
     }
-    write({ ...s, done });
-  },
-  setBook(id: string, status: BookStatus) {
-    const s = read();
-    write({ ...s, books: { ...s.books, [id]: status } });
-  },
-  setLog(key: string, patch: WeekLog) {
-    const s = read();
-    write({ ...s, logs: { ...s.logs, [key]: { ...s.logs[key], ...patch } } });
-  },
-  setNote(month: number, text: string) {
-    const s = read();
-    write({ ...s, notes: { ...s.notes, [String(month)]: text } });
-  },
-  setStartDate(date: string | null) {
-    write({ ...read(), startDate: date });
-  },
-  exportJSON(): string {
-    return JSON.stringify(read(), null, 2);
-  },
-  importJSON(text: string) {
-    write(normalise(JSON.parse(text)));
-  },
-  reset() {
-    write(EMPTY_STATE);
-  },
-};
+  }
+  return restored;
+}

@@ -1,17 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { MONTHS, QUARTERS, WEEKLY_BUDGET } from "@/data/curriculum";
+import type { TrackId } from "@/lib/types";
+import { getTrack } from "@/data/tracks";
 import { useTracker } from "@/lib/store";
 import { calendarWeek, categoryHours, logTotals, monthProgress, nextUp, overallProgress } from "@/lib/progress";
 import { CAT_BG, CAT_TEXT, Card, Eyebrow, H2, ProgressBar, ProgressRing, formatHours } from "@/components/ui";
 import { WeekCard } from "@/components/WeekCard";
 
-export function Dashboard() {
-  const { state, hydrated } = useTracker();
-  const overall = overallProgress(state);
-  const next = nextUp(state);
-  const cats = categoryHours(state);
+export function Dashboard({ trackId }: { trackId: TrackId }) {
+  const track = getTrack(trackId);
+  const base = `/${trackId}`;
+  const { state, hydrated } = useTracker(trackId);
+  const overall = overallProgress(state, track);
+  const next = nextUp(state, track);
+  const cats = categoryHours(state, track);
   const logs = logTotals(state);
   const calWeek = calendarWeek(state.startDate);
   const planWeek = next ? next.index : 48;
@@ -22,24 +25,24 @@ export function Dashboard() {
       {/* Hero */}
       <section className="grid items-center gap-6 md:grid-cols-[1fr_auto]">
         <div className="space-y-3">
-          <Eyebrow>Your fiction year · English track</Eyebrow>
+          <Eyebrow>Your fiction year · {track.name} track</Eyebrow>
           <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
             {isFresh ? "Twelve months. Ten hours a week. One finished novella." : next ? `Month ${next.month.n}: ${next.month.title}` : "You finished the year."}
           </h1>
           <p className="max-w-2xl leading-relaxed text-muted">
             {isFresh
-              ? "Five short stories, a 20–30k-word novella drafted and revised, four Hindi stories as a hedge, and two stories submitted. Each week is planned down to the hour. Tick tasks off as you go."
+              ? track.intro
               : next
                 ? next.month.question
                 : "Every task is ticked. Write your Year 2 plan and start the next thing."}
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
             {next && (
-              <Link href={`/month/${next.month.n}#week-${next.week.n}`} className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-ink hover:opacity-90">
+              <Link href={`${base}/month/${next.month.n}#week-${next.week.n}`} className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-ink hover:opacity-90">
                 {isFresh ? "Start Month 1" : `Open Month ${next.month.n}`}
               </Link>
             )}
-            <Link href="/guide" className="rounded-md border border-line bg-card px-4 py-2 text-sm hover:border-muted">
+            <Link href={`${base}/guide`} className="rounded-md border border-line bg-card px-4 py-2 text-sm hover:border-muted">
               How the year works
             </Link>
           </div>
@@ -75,11 +78,11 @@ export function Dashboard() {
         <section className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <H2>This week</H2>
-            <Link href={`/month/${next.month.n}`} className="text-sm text-muted underline underline-offset-2 hover:text-ink">
+            <Link href={`${base}/month/${next.month.n}`} className="text-sm text-muted underline underline-offset-2 hover:text-ink">
               Full month plan →
             </Link>
           </div>
-          <WeekCard month={next.month} week={next.week} showMonth />
+          <WeekCard track={trackId} month={next.month} week={next.week} showMonth />
         </section>
       )}
 
@@ -87,20 +90,20 @@ export function Dashboard() {
       <section className="space-y-4">
         <H2>The year</H2>
         <div className="space-y-6">
-          {QUARTERS.map((q) => (
+          {track.quarters.map((q) => (
             <div key={q.n}>
               <div className="mb-3 flex flex-wrap items-baseline gap-x-3">
                 <h3 className="font-serif text-lg font-semibold">Q{q.n} · {q.title}</h3>
                 <p className="text-sm text-muted">{q.goal}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                {MONTHS.filter((m) => m.quarter === q.n).map((m) => {
+                {track.months.filter((m) => m.quarter === q.n).map((m) => {
                   const p = monthProgress(state, m);
                   const current = next?.month.n === m.n;
                   return (
                     <Link
                       key={m.n}
-                      href={`/month/${m.n}`}
+                      href={`${base}/month/${m.n}`}
                       className={`group rounded-xl border bg-card p-4 transition-colors hover:border-muted ${current ? "border-accent" : "border-line"}`}
                     >
                       <div className="flex items-center justify-between">
@@ -112,6 +115,7 @@ export function Dashboard() {
                         ) : null}
                       </div>
                       <p className="mt-1 font-serif text-lg font-semibold leading-snug group-hover:text-accent">{m.title}</p>
+                      {m.altTitle && <p className="text-sm text-muted" lang="hi">{m.altTitle}</p>}
                       <ProgressBar pct={p.pct} className="mt-3" />
                       <p className="mt-1.5 text-xs tabular-nums text-muted">
                         {p.done}/{p.total} tasks · {p.deliverablesDone}/{m.deliverables.length} deliverables
@@ -130,7 +134,7 @@ export function Dashboard() {
         <H2>Where the hours go</H2>
         <Card>
           <ul className="space-y-4">
-            {WEEKLY_BUDGET.map((b) => {
+            {track.budget.map((b) => {
               const c = cats[b.category];
               const pct = c.total ? Math.round((c.done / c.total) * 100) : 0;
               return (
