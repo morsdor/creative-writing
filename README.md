@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fiction Year
 
-## Getting Started
+A 12-month, 10-hours-a-week fiction-writing curriculum (English track, with a small Hindi "hedge") and a progress tracker.
 
-First, run the development server:
+- **Dashboard** — this week's tasks, overall progress, pace against your start date, hours by category.
+- **Months 1–12** — concepts to understand, books, lectures and stories, 4 weekly plans of exactly 10 hours each, deliverables, a self-check, pitfalls and notes.
+- **Reading** — every book with its priority (buy first / later / optional / free online) and your status.
+- **Log** — actual hours and words written per week, with a words-per-week chart.
+- **Settings** — start date, export/import backup, reset.
+
+Progress is stored in the browser's `localStorage` (key `fiction-year:v1`). No backend and no accounts. Use **Settings → Export** to back up or move to another device.
+
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Editing the curriculum
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+All content lives in two files:
 
-## Learn More
+- `src/data/curriculum.ts` — the 12 months, weekly tasks, budget and quarters
+- `src/data/books.ts` — the reading list
 
-To learn more about Next.js, take a look at the following resources:
+After editing, run:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run check
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+It verifies that every week adds up to exactly 10 hours, that ids are unique, and that every book reference exists.
 
-## Deploy on Vercel
+> Task ids are generated from position (`m{month}w{week}t{index}`). Reordering tasks inside a week after you've started ticking will shift which boxes show as done. Add new tasks at the end of a week instead.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy to Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push this folder to a GitHub repository.
+2. On vercel.com: **Add New → Project**, import the repo, and keep the defaults (Next.js is detected automatically).
+3. Deploy. Every page is statically pre-rendered; no environment variables are needed.
+
+Or from the terminal: `npx vercel` and follow the prompts.
+
+### Syncing across devices (later)
+
+Right now each browser keeps its own progress. If you want the same progress on phone and laptop without export/import, the simplest upgrade is a small database on Vercel (e.g. a Postgres or Redis integration from the Vercel Marketplace) plus a single API route that stores the same JSON blob `src/lib/store.ts` already produces.

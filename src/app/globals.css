@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --paper: #f7f4ee;
+  --card: #fffdf9;
+  --sunken: #efeae1;
+  --ink: #1f1c18;
+  --muted: #6b645a;
+  --line: #e2dbcf;
+  --accent: #b4532a;
+  --accent-ink: #ffffff;
+  --accent-soft: #f5e4d8;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --cat-writing: #b4532a;
+  --cat-fiction: #2b6b66;
+  --cat-craft: #3f51a3;
+  --cat-lecture: #7a4ea3;
+  --cat-hindi: #a8345a;
+  --cat-reflect: #6b645a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #15130f;
+    --card: #1d1a16;
+    --sunken: #24201b;
+    --ink: #ece6dc;
+    --muted: #a59c8e;
+    --line: #353029;
+    --accent: #e08a5f;
+    --accent-ink: #1a1410;
+    --accent-soft: #3a2a20;
+
+    --cat-writing: #e08a5f;
+    --cat-fiction: #6cc0b8;
+    --cat-craft: #9aa8f0;
+    --cat-lecture: #c3a0ea;
+    --cat-hindi: #ee8db0;
+    --cat-reflect: #b3aa9b;
   }
 }
 
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-cat-writing: var(--cat-writing);
+  --color-cat-fiction: var(--cat-fiction);
+  --color-cat-craft: var(--cat-craft);
+  --color-cat-lecture: var(--cat-lecture);
+  --color-cat-hindi: var(--cat-hindi);
+  --color-cat-reflect: var(--cat-reflect);
+
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Noto Serif Devanagari", "Kohinoor Devanagari", serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Devanagari", "Kohinoor Devanagari", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+input,
+textarea,
+select {
+  color: var(--ink);
 }
