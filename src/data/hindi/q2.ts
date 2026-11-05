@@ -275,7 +275,7 @@ export const Q2: Month[] = [
       {
         label: "Language · 1 h",
         items: [
-          { title: "समांतर कोश / अरविंद लैक्सिकन", author: "अरविंद कुमार", what: "Set it up in week 1.", why: "For the exact word, not the grander one.", url: "https://arvindlexicon.com/", bookId: "hi-samantar" },
+          { title: "समांतर कोश / अरविंद लैक्सिकन", author: "अरविंद कुमार", what: "Set it up in week 1.", why: "For the exact word, not the grander one.", url: "https://www.google.com/search?q=Arvind+Lexicon+Hindi+thesaurus", bookId: "hi-samantar" },
           { title: "Your novella's glossary", what: "Week 2: 20–30 words, idioms and forms of address from its world.", why: "Decide now which Hindi your novella speaks: which dialect, how much Urdu, how much English." },
         ],
       },

@@ -60,6 +60,21 @@ function normalise(raw: unknown): TrackerState {
   };
 }
 
+/* -------- migration from the single-track version (key "fiction-year:v1") --------
+ * That version was the English track plus a Hindi hour. Task ids are positional,
+ * and the Hindi row was always the last of its week, so English ids keep their
+ * meaning except: every t7 (the Hindi hour, now the story of the week), t6 in the
+ * four "Hindi probe" weeks, and six deliverables that were about Hindi. */
+const LEGACY_KEY = "fiction-year:v1";
+const LEGACY_CHANGED = new Set(["m3w4t6", "m6w4t6", "m10w1t6", "m12w3t6", "m1d5", "m3d5", "m6d7", "m10d1", "m11d4", "m12d4"]);
+
+function fromLegacy(raw: unknown): TrackerState {
+  const s = normalise(raw);
+  const done: Record<string, true> = {};
+  for (const id of Object.keys(s.done)) if (!/^m\d+w\d+t7$/.test(id) && !LEGACY_CHANGED.has(id)) done[id] = true;
+  return { ...s, done };
+}
+
 function read(track: TrackId): TrackerState {
   const hit = cache.get(track);
   if (hit) return hit;
@@ -67,6 +82,13 @@ function read(track: TrackId): TrackerState {
   try {
     const raw = window.localStorage.getItem(KEYS[track]);
     if (raw) state = normalise(JSON.parse(raw));
+    else if (track === "english") {
+      const legacy = window.localStorage.getItem(LEGACY_KEY);
+      if (legacy) {
+        state = fromLegacy(JSON.parse(legacy));
+        window.localStorage.setItem(KEYS.english, JSON.stringify(state));
+      }
+    }
   } catch {
     /* blocked or corrupt storage — start empty */
   }
@@ -159,9 +181,13 @@ export function exportAll(): string {
   return JSON.stringify({ app: "fiction-year", version: 2, tracks }, null, 2);
 }
 
-/** Accepts a v2 backup (both tracks). Returns the tracks it restored. */
+/** Accepts a v2 backup (both tracks) or a v1 backup (English only). Returns the tracks it restored. */
 export function importAll(text: string): TrackId[] {
-  const data = JSON.parse(text) as { version?: number; tracks?: Record<string, unknown> };
+  const data = JSON.parse(text) as { version?: number; tracks?: Record<string, unknown>; done?: unknown };
+  if (data?.version === 1 && data.done && typeof data.done === "object") {
+    write("english", fromLegacy(data));
+    return ["english"];
+  }
   if (data?.version !== 2 || !data.tracks || typeof data.tracks !== "object") {
     throw new Error("Not a Fiction Year backup");
   }

@@ -38,6 +38,6 @@ export const BOOKS: Book[] = [
 
   /* ------------------------------- Language ------------------------------- */
   { id: "hi-achhi-hindi", title: "अच्छी हिंदी", author: "रामचंद्र वर्मा", kind: "language", months: [2, 3, 5, 6, 8, 10, 12], priority: "buy-first", length: "A chapter at a time", note: "The closest Hindi has to a usage guide: common mistakes and how careful prose avoids them. Old-fashioned in places. Take the principles, not every rule." },
-  { id: "hi-samantar", title: "समांतर कोश / अरविंद लैक्सिकन", author: "अरविंद कुमार", kind: "language", months: [6, 11, 12], priority: "free-online", length: "Thesaurus", note: "The first Hindi thesaurus. The online Arvind Lexicon is the easiest way in; use it to find the exact word, not a grander one.", url: "https://arvindlexicon.com/" },
+  { id: "hi-samantar", title: "समांतर कोश / अरविंद लैक्सिकन", author: "अरविंद कुमार", kind: "language", months: [6, 11, 12], priority: "free-online", length: "Thesaurus", note: "The first Hindi thesaurus. The online Arvind Lexicon (search for it) is the easiest way in; use it to find the exact word, not a grander one.", url: "https://www.google.com/search?q=Arvind+Lexicon+Hindi+thesaurus" },
   { id: "hi-vartani", title: "देवनागरी लिपि तथा हिंदी वर्तनी का मानकीकरण", author: "केंद्रीय हिंदी निदेशालय", kind: "language", months: [1, 12], priority: "free-online", length: "Short booklet", note: "The official spelling standard (anusvar, chandrabindu, nukta, hyphens). Free PDF from the Central Hindi Directorate. Pick your rules once and stick to them." },
 ];
