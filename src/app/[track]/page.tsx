@@ -10,7 +10,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/[track]">): Promise<Metadata> {
   const t = getTrack((await params).track);
-  return { title: t ? `${t.name} track` : "Track" };
+  return { title: t ? (t.id === "hindi" ? "हिंदी ट्रैक" : "English track") : "Track" };
 }
 
 export default function TrackHome({ params }: PageProps<"/[track]">) {

@@ -5,7 +5,7 @@
 A 12-month, 10-hours-a-week fiction-writing curriculum with a progress tracker, in two separate tracks:
 
 - **English** (`/english`) — craft taught entirely in English: Saunders, Le Guin, Truby, Browne & King, Sanderson's lectures, a novel or stories each month, and a 1-hour "story of the week".
-- **हिंदी** (`/hindi`) — every story read and every word written in Hindi: Premchand to Uday Prakash, Hindi criticism and writers' diaries, film adaptations of Hindi stories, Hindwi interviews, and a weekly language hour (typing, spelling, word diary, copywork, usage). The app's instructions are in English for both tracks.
+- **हिंदी** (`/hindi`) — every story read and every word written in Hindi: Premchand to Uday Prakash, Hindi criticism and writers' diaries, film adaptations of Hindi stories, Hindwi interviews, and a weekly language hour (typing, spelling, word diary, copywork, usage). Everything on the Hindi track, instructions and interface included, is in Hindi.
 
 Both tracks run the same shape: five short stories in Q1, POV/scene/novella design in Q2, a 20–30k-word novella drafted in Q3, revised and two stories submitted in Q4. Every week is exactly 10 hours.
 
@@ -36,6 +36,7 @@ All content lives in `src/data/`:
 - `english/months.ts`, `english/books.ts`, `english/index.ts` — the English track
 - `hindi/q1.ts` … `hindi/q4.ts`, `hindi/books.ts`, `hindi/index.ts` — the Hindi track
 - `helpers.ts` — the `week()` builder, link helpers and shared labels
+- `src/lib/i18n.ts` — interface labels for each track (English / Hindi)
 - `tracks.ts` — the list of tracks
 
 After editing, run:
@@ -44,7 +45,7 @@ After editing, run:
 npm run check
 ```
 
-It verifies that every week adds up to exactly 10 hours, that ids are unique, that every book reference exists, and that each track stays in its own language (no Devanagari in the English track; no English-track resources in the Hindi track).
+It verifies that every week adds up to exactly 10 hours, that ids are unique, that every book reference exists, and that each track stays in its own language (no Devanagari in the English track; every Hindi-track month, task and resource in Devanagari).
 
 > Task ids are generated from position (`m{month}w{week}t{index}`). Reordering tasks inside a week after you've started ticking will shift which boxes show as done. Add new tasks at the end of a week instead.
 

@@ -44,6 +44,13 @@ for (const track of TRACKS) {
   if (track.id === "hindi") {
     for (const banned of ["Sanderson", "Writing Excuses", "Saunders' ", "Le Guin", "Burroway", "Browne & King", "Scofield"])
       if (blob.includes(banned)) fail(`${T} mentions English-track resource "${banned}"`);
+    // The Hindi track is written in Hindi: every month, task, concept and deliverable must be in Devanagari.
+    for (const m of track.months) {
+      const texts = [m.title, m.question, m.summary, ...m.concepts.flatMap((c) => [c.term, c.explain]), ...m.deliverables.map((d) => d.text),
+        ...m.weeks.flatMap((w) => [w.focus, ...w.tasks.flatMap((t) => [t.title, t.detail ?? "—"])]), ...m.readingQuestions, ...m.selfCheck, ...m.pitfalls,
+        ...m.shelves.flatMap((s) => [s.label, ...s.items.flatMap((r) => [r.title, r.what, r.why])])];
+      for (const text of texts) if (text !== "—" && !DEVANAGARI.test(text)) fail(`${T} Month ${m.n}: not in Hindi: "${text.slice(0, 60)}"`);
+    }
     for (const b of track.books) if (b.id !== "hi-free-choice") {
       if (!DEVANAGARI.test(b.title)) fail(`${T} book "${b.title}" has no Devanagari title`);
     }

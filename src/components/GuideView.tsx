@@ -1,24 +1,26 @@
 import Link from "next/link";
 import type { TrackId } from "@/lib/types";
 import { getTrack } from "@/data/tracks";
-import { CAT_BG, CAT_TEXT, Card, Eyebrow, H2, formatHours } from "@/components/ui";
+import { CAT_BG, CAT_TEXT, Card, Eyebrow, H2 } from "@/components/ui";
+import { ui } from "@/lib/i18n";
 
 export function GuideView({ trackId }: { trackId: TrackId }) {
   const track = getTrack(trackId);
   const g = track.guide;
+  const t = ui(trackId);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12" lang={t.htmlLang}>
       <header className="max-w-3xl space-y-4">
-        <Eyebrow>How it works · {track.name} track</Eyebrow>
-        <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight sm:text-5xl" lang={trackId === "hindi" ? "hi" : undefined}>
+        <Eyebrow>{t.guideEyebrow}</Eyebrow>
+        <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
           {g.headline}
         </h1>
         <p className="text-lg leading-relaxed text-muted">{g.intro}</p>
       </header>
 
       <section className="space-y-4">
-        <H2>By the end of the year</H2>
+        <H2>{t.byEndOfYear}</H2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           {g.outcomes.map(([n, text]) => (
             <div key={text} className="rounded-xl border border-line bg-card p-4">
@@ -31,7 +33,7 @@ export function GuideView({ trackId }: { trackId: TrackId }) {
 
       <section className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-4">
-          <H2>The 10-hour week</H2>
+          <H2>{t.tenHourWeek}</H2>
           <Card>
             <ul className="space-y-3.5">
               {track.budget.map((b) => (
@@ -40,7 +42,7 @@ export function GuideView({ trackId }: { trackId: TrackId }) {
                   <div className="flex-1">
                     <div className="flex items-baseline justify-between gap-3">
                       <p className={`font-semibold ${CAT_TEXT[b.category]}`}>{b.label}</p>
-                      <p className="tabular-nums text-sm">{formatHours(b.hours)}</p>
+                      <p className="tabular-nums text-sm">{t.hours(b.hours)}</p>
                     </div>
                     <p className="text-sm text-muted">{b.note}</p>
                   </div>
@@ -55,7 +57,7 @@ export function GuideView({ trackId }: { trackId: TrackId }) {
           </Card>
         </div>
         <div className="space-y-4">
-          <H2>A suggested rhythm</H2>
+          <H2>{t.rhythm}</H2>
           <Card className="p-0">
             <table className="w-full text-left text-sm">
               <tbody className="divide-y divide-line">
@@ -69,16 +71,16 @@ export function GuideView({ trackId }: { trackId: TrackId }) {
               </tbody>
             </table>
           </Card>
-          <p className="text-sm text-muted">Move days around to fit your job. What matters is that the long writing session happens every week.</p>
+          <p className="text-sm text-muted">{t.rhythmNote}</p>
         </div>
       </section>
 
       <section className="space-y-4">
-        <H2>Four quarters</H2>
+        <H2>{t.fourQuarters}</H2>
         <ol className="grid gap-3 md:grid-cols-2">
           {track.quarters.map((q) => (
             <li key={q.n} className="rounded-xl border border-line bg-card p-5">
-              <Eyebrow>Q{q.n} · {q.months}</Eyebrow>
+              <Eyebrow>{t.quarterShort(q.n)} · {q.months}</Eyebrow>
               <p className="mt-1 font-serif text-xl font-semibold">{q.title}</p>
               <p className="mt-2 leading-relaxed text-muted">{q.goal}</p>
             </li>
@@ -87,7 +89,7 @@ export function GuideView({ trackId }: { trackId: TrackId }) {
       </section>
 
       <section className="space-y-4">
-        <H2>Four rules</H2>
+        <H2>{t.fourRules}</H2>
         <div className="grid gap-3 md:grid-cols-2">
           {g.rules.map((r) => (
             <Card key={r.title}>
@@ -100,13 +102,9 @@ export function GuideView({ trackId }: { trackId: TrackId }) {
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Card>
-          <Eyebrow>When you fall behind</Eyebrow>
-          <p className="mt-3 leading-relaxed">
-            A year has 52 weeks and the plan uses 48, so you have <strong>four buffer weeks</strong>: illness, travel, deadlines at work. Don&apos;t catch up by doubling a week. Slide the plan.
-          </p>
-          <p className="mt-3 leading-relaxed text-muted">
-            If a week is squeezed, cut in this order: talks → craft reading → fiction reading. Never cut the Saturday writing session.
-          </p>
+          <Eyebrow>{t.fallBehind}</Eyebrow>
+          <p className="mt-3 leading-relaxed">{t.fallBehindBody}</p>
+          <p className="mt-3 leading-relaxed text-muted">{t.fallBehindSub}</p>
         </Card>
         {g.cards.map((c) => (
           <Card key={c.eyebrow}>
@@ -118,10 +116,10 @@ export function GuideView({ trackId }: { trackId: TrackId }) {
       </section>
 
       <section className="rounded-xl border border-line bg-sunken p-6">
-        <p className="font-serif text-xl font-semibold">Where your progress lives</p>
+        <p className="font-serif text-xl font-semibold">{t.progressLives}</p>
         <p className="mt-2 max-w-3xl leading-relaxed text-muted">
-          Ticks, logs and notes are saved in this browser&apos;s local storage, separately for each track. Nothing is sent anywhere. To move devices or keep a backup, use{" "}
-          <Link href="/settings" className="text-ink underline underline-offset-2">Settings → Export</Link>, and import the file on the other device.
+          {t.progressLivesBody}{" "}
+          <Link href="/settings" className="text-ink underline underline-offset-2">Settings →</Link>
         </p>
       </section>
     </div>

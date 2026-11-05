@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import type { Category, Resource } from "@/lib/types";
-import { CATEGORY_LABEL } from "@/data/helpers";
 
 export const CAT_TEXT: Record<Category, string> = {
   writing: "text-cat-writing",
@@ -20,11 +19,11 @@ export const CAT_BG: Record<Category, string> = {
   reflect: "bg-cat-reflect",
 };
 
-export function CategoryBadge({ category }: { category: Category }) {
+export function CategoryBadge({ category, label }: { category: Category; label: string }) {
   return (
     <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider ${CAT_TEXT[category]}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${CAT_BG[category]}`} />
-      {CATEGORY_LABEL[category]}
+      {label}
     </span>
   );
 }
@@ -81,7 +80,7 @@ export function Checkbox({ checked, onChange, label }: { checked: boolean; onCha
   );
 }
 
-export function ResourceList({ items }: { items: Resource[] }) {
+export function ResourceList({ items, readLabel = "Read/watch: " }: { items: Resource[]; readLabel?: string }) {
   return (
     <ul className="space-y-4">
       {items.map((r, i) => (
@@ -96,7 +95,7 @@ export function ResourceList({ items }: { items: Resource[] }) {
             )}
             {r.author && <span className="text-muted"> — {r.author}</span>}
           </p>
-          <p className="mt-1 text-sm"><span className="text-muted">Read/watch: </span>{r.what}</p>
+          <p className="mt-1 text-sm"><span className="text-muted">{readLabel}</span>{r.what}</p>
           <p className="mt-0.5 text-sm text-muted">{r.why}</p>
         </li>
       ))}

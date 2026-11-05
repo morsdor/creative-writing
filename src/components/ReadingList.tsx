@@ -5,20 +5,9 @@ import { getTrack } from "@/data/tracks";
 import type { Book, TrackId } from "@/lib/types";
 import { trackActions, useTracker, type BookStatus } from "@/lib/store";
 import { Card, Eyebrow, H2 } from "@/components/ui";
+import { ui } from "@/lib/i18n";
 
-const STATUSES: { value: BookStatus; label: string }[] = [
-  { value: "todo", label: "To get" },
-  { value: "have", label: "Have it" },
-  { value: "reading", label: "Reading" },
-  { value: "done", label: "Done" },
-];
-
-export const PRIORITY_LABEL: Record<Book["priority"], string> = {
-  "buy-first": "Buy first",
-  "buy-later": "Buy during the year",
-  optional: "Optional",
-  "free-online": "Free online",
-};
+const STATUSES: BookStatus[] = ["todo", "have", "reading", "done"];
 
 const PRIORITY_STYLE: Record<Book["priority"], string> = {
   "buy-first": "bg-accent text-accent-ink",
@@ -35,19 +24,18 @@ export function ReadingList({ trackId }: { trackId: TrackId }) {
   const statusOf = (id: string): BookStatus => state.books[id] ?? "todo";
   const done = BOOKS.filter((b) => statusOf(b.id) === "done").length;
   const buyFirst = BOOKS.filter((b) => b.priority === "buy-first");
+  const t = ui(trackId);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10" lang={t.htmlLang}>
       <header className="max-w-3xl space-y-3">
-        <Eyebrow>Reading list · {track.name} track</Eyebrow>
-        <h1 className="font-serif text-4xl font-semibold tracking-tight">Every book, by when you need it</h1>
-        <p className="leading-relaxed text-muted">
-          {done} of {BOOKS.length} finished. You don&apos;t need to buy everything now. Start with the {buyFirst.length} marked <em>Buy first</em>, and use free online texts where they exist.
-        </p>
+        <Eyebrow>{t.readingEyebrow}</Eyebrow>
+        <h1 className="font-serif text-4xl font-semibold tracking-tight">{t.readingTitle}</h1>
+        <p className="leading-relaxed text-muted">{t.readingIntro(done, BOOKS.length, buyFirst.length)}</p>
       </header>
 
       <Card>
-        <Eyebrow>Buy first</Eyebrow>
+        <Eyebrow>{t.buyFirst}</Eyebrow>
         <ul className="mt-3 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
           {buyFirst.map((b) => (
             <li key={b.id} className="flex items-baseline gap-2">
@@ -81,21 +69,21 @@ export function ReadingList({ trackId }: { trackId: TrackId }) {
                           b.title
                         )}
                       </p>
-                      <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${PRIORITY_STYLE[b.priority]}`}>{PRIORITY_LABEL[b.priority]}</span>
+                      <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${PRIORITY_STYLE[b.priority]}`}>{t.priority[b.priority]}</span>
                     </div>
                     <p className="text-sm text-muted">
                       {b.author} · {b.length} ·{" "}
                       {b.months.map((m, i) => (
                         <span key={m}>
                           {i > 0 && ", "}
-                          <Link href={`/${trackId}/month/${m}`} className="underline underline-offset-2 hover:text-ink">M{m}</Link>
+                          <Link href={`/${trackId}/month/${m}`} className="underline underline-offset-2 hover:text-ink">{t.monthShort(m)}</Link>
                         </span>
                       ))}
                     </p>
                     <p className="mt-1 text-sm leading-relaxed">{b.note}</p>
                   </div>
-                  <div role="radiogroup" aria-label={`Status of ${b.title}`} className="flex shrink-0 rounded-lg border border-line bg-sunken p-0.5 text-xs">
-                    {STATUSES.map((opt) => (
+                  <div role="radiogroup" aria-label={t.statusOf(b.title)} className="flex shrink-0 rounded-lg border border-line bg-sunken p-0.5 text-xs">
+                    {STATUSES.map((value) => ({ value, label: t.status[value] })).map((opt) => (
                       <button
                         key={opt.value}
                         type="button"

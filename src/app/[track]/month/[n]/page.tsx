@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { TRACKS, getMonth, getTrack } from "@/data/tracks";
+import { ui } from "@/lib/i18n";
 import { MonthView } from "@/components/MonthView";
 import { PageSkeleton } from "@/components/TrackGate";
 
@@ -13,7 +14,7 @@ export async function generateMetadata({ params }: PageProps<"/[track]/month/[n]
   const { track, n } = await params;
   const t = getTrack(track);
   const m = t && getMonth(t, Number(n));
-  return { title: t && m ? `Month ${m.n}: ${m.title} · ${t.name}` : "Month" };
+  return { title: t && m ? `${ui(t.id).monthN(m.n)}: ${m.title} · ${t.nativeName}` : "Month" };
 }
 
 type Params = PageProps<"/[track]/month/[n]">["params"];

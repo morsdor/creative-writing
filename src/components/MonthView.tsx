@@ -5,16 +5,11 @@ import type { TrackId } from "@/lib/types";
 import { getMonth, getTrack } from "@/data/tracks";
 import { trackActions, useTracker } from "@/lib/store";
 import { monthProgress, nextUp } from "@/lib/progress";
-import { Card, Checkbox, Eyebrow, H2, ProgressBar, ResourceList, formatHours } from "@/components/ui";
+import { Card, Checkbox, Eyebrow, H2, ProgressBar, ResourceList } from "@/components/ui";
+import { ui } from "@/lib/i18n";
 import { WeekCard } from "@/components/WeekCard";
 
-const SECTIONS = [
-  ["concepts", "Concepts"],
-  ["resources", "Read & watch"],
-  ["weeks", "Weekly plan"],
-  ["deliverables", "Deliverables"],
-  ["notes", "Notes"],
-] as const;
+const SECTION_IDS = ["concepts", "resources", "weeks", "deliverables", "notes"] as const;
 
 export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
   const track = getTrack(trackId);
@@ -27,9 +22,10 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
   const prev = getMonth(track, month.n - 1);
   const nxt = getMonth(track, month.n + 1);
   const base = `/${trackId}`;
+  const t = ui(trackId);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10" lang={t.htmlLang}>
       {/* Month strip */}
       <nav aria-label="Months" className="-mx-4 overflow-x-auto px-4">
         <ol className="flex min-w-max gap-1.5">
@@ -43,7 +39,7 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
                   className={`relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-md border text-sm tabular-nums transition-colors ${
                     active ? "border-ink bg-ink text-paper" : "border-line bg-card hover:border-muted"
                   }`}
-                  title={`Month ${m.n}: ${m.title}`}
+                  title={`${t.monthN(m.n)}: ${m.title}`}
                 >
                   {m.n}
                   {!active && mp.pct > 0 && (
@@ -59,7 +55,7 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
       {/* Header */}
       <header className="space-y-4">
         <Eyebrow>
-          {track.name} track · Q{quarter.n} {quarter.title} — Month {month.n} of 12
+          {t.trackName} · {t.quarterShort(quarter.n)} {quarter.title} — {t.monthOf(month.n)}
         </Eyebrow>
         <div>
           <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">{month.title}</h1>
@@ -71,22 +67,22 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3 pt-2">
           <div className="w-full max-w-xs">
             <div className="flex justify-between text-sm">
-              <span className="text-muted">Tasks</span>
+              <span className="text-muted">{t.tasks}</span>
               <span className="tabular-nums">
-                {p.done}/{p.total} · {formatHours(p.hoursDone)} of {formatHours(p.hoursTotal)}
+                {p.done}/{p.total} · {t.hoursOf(t.hours(p.hoursDone), t.hours(p.hoursTotal))}
               </span>
             </div>
             <ProgressBar pct={p.pct} className="mt-1.5" />
           </div>
           <p className="text-sm">
-            <span className="text-muted">Deliverables </span>
+            <span className="text-muted">{t.deliverables} </span>
             <span className="tabular-nums">
               {p.deliverablesDone}/{month.deliverables.length}
             </span>
           </p>
           {month.wordTarget && (
             <p className="rounded-md bg-accent-soft px-2.5 py-1 text-sm">
-              <span className="text-muted">Novella target: </span>
+              <span className="text-muted">{t.novellaTarget}</span>
               {month.wordTarget}
             </p>
           )}
@@ -96,10 +92,10 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
       {/* Section jump links */}
       <nav aria-label="On this page" className="sticky top-0 z-20 -mx-4 border-y border-line bg-paper/90 px-4 py-2 backdrop-blur sm:top-[57px]">
         <ul className="flex gap-1 overflow-x-auto text-sm">
-          {SECTIONS.map(([id, label]) => (
+          {SECTION_IDS.map((id) => (
             <li key={id}>
               <a href={`#${id}`} className="block whitespace-nowrap rounded-md px-2.5 py-1 text-muted hover:bg-sunken hover:text-ink">
-                {label}
+                {t.sections[id]}
               </a>
             </li>
           ))}
@@ -108,7 +104,7 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
 
       {/* Concepts */}
       <section className="space-y-4">
-        <H2 id="concepts">What to understand</H2>
+        <H2 id="concepts">{t.whatToUnderstand}</H2>
         <dl className="grid gap-3 md:grid-cols-2">
           {month.concepts.map((c) => (
             <div key={c.term} className="rounded-xl border border-line bg-card p-4">
@@ -121,19 +117,19 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
 
       {/* Resources */}
       <section className="space-y-4">
-        <H2 id="resources">Read &amp; watch</H2>
+        <H2 id="resources">{t.readWatch}</H2>
         <div className="grid gap-4 md:grid-cols-2">
           {month.shelves.map((s) => (
             <Card key={s.label}>
               <Eyebrow>{s.label}</Eyebrow>
               <div className="mt-3">
-                <ResourceList items={s.items} />
+                <ResourceList items={s.items} readLabel={t.readWhat} />
               </div>
             </Card>
           ))}
         </div>
         <Card>
-          <Eyebrow>Questions to ask while reading</Eyebrow>
+          <Eyebrow>{t.readingQuestions}</Eyebrow>
           <ul className="mt-3 list-disc space-y-1.5 pl-5 leading-relaxed">
             {month.readingQuestions.map((q) => (
               <li key={q}>{q}</li>
@@ -145,8 +141,8 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
       {/* Weeks */}
       <section className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <H2 id="weeks">Weekly plan</H2>
-          <p className="text-sm text-muted">4 weeks × 10 hours. Use any 5th week of a calendar month as a buffer.</p>
+          <H2 id="weeks">{t.weeklyPlan}</H2>
+          <p className="text-sm text-muted">{t.weeklyPlanHint}</p>
         </div>
         <div className="space-y-5">
           {month.weeks.map((w) => (
@@ -158,8 +154,8 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
       {/* Deliverables + checks */}
       <section className="grid gap-4 lg:grid-cols-[3fr_2fr]">
         <Card id="deliverables">
-          <H2>Deliverables</H2>
-          <p className="mt-1 text-sm text-muted">What should exist by the end of the month.</p>
+          <H2>{t.deliverables}</H2>
+          <p className="mt-1 text-sm text-muted">{t.deliverablesHint}</p>
           <ul className="mt-4 space-y-3">
             {month.deliverables.map((d) => {
               const checked = !!state.done[d.id];
@@ -174,7 +170,7 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
         </Card>
         <div className="space-y-4">
           <Card>
-            <Eyebrow>Self-check</Eyebrow>
+            <Eyebrow>{t.selfCheck}</Eyebrow>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed">
               {month.selfCheck.map((q) => (
                 <li key={q}>{q}</li>
@@ -182,7 +178,7 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
             </ul>
           </Card>
           <Card>
-            <Eyebrow>Watch out for</Eyebrow>
+            <Eyebrow>{t.pitfalls}</Eyebrow>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed">
               {month.pitfalls.map((q) => (
                 <li key={q}>{q}</li>
@@ -194,12 +190,12 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
 
       {/* Notes */}
       <section className="space-y-3">
-        <H2 id="notes">Notes for this month</H2>
+        <H2 id="notes">{t.notesTitle}</H2>
         <textarea
           value={state.notes[String(month.n)] ?? ""}
           onChange={(e) => actions.setNote(month.n, e.target.value)}
           rows={6}
-          placeholder="Reflections, things to remember, what to carry into next month…"
+          placeholder={t.notesPlaceholder}
           className="w-full rounded-xl border border-line bg-card p-4 leading-relaxed outline-none focus:border-muted"
         />
       </section>
@@ -208,7 +204,7 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
       <nav className="flex justify-between gap-4 border-t border-line pt-6 text-sm">
         {prev ? (
           <Link href={`${base}/month/${prev.n}`} className="group">
-            <span className="text-muted">← Month {prev.n}</span>
+            <span className="text-muted">← {t.monthN(prev.n)}</span>
             <span className="block font-serif text-lg group-hover:text-accent">{prev.title}</span>
           </Link>
         ) : (
@@ -216,7 +212,7 @@ export function MonthView({ trackId, n }: { trackId: TrackId; n: number }) {
         )}
         {nxt && (
           <Link href={`${base}/month/${nxt.n}`} className="group text-right">
-            <span className="text-muted">Month {nxt.n} →</span>
+            <span className="text-muted">{t.monthN(nxt.n)} →</span>
             <span className="block font-serif text-lg group-hover:text-accent">{nxt.title}</span>
           </Link>
         )}

@@ -4,11 +4,13 @@ import { useState } from "react";
 import type { Month, TrackId, Week } from "@/lib/types";
 import { trackActions, useTracker } from "@/lib/store";
 import { logKey, weekProgress } from "@/lib/progress";
-import { CategoryBadge, Checkbox, ProgressBar, formatHours } from "@/components/ui";
+import { CategoryBadge, Checkbox, ProgressBar } from "@/components/ui";
+import { ui } from "@/lib/i18n";
 
 export function WeekCard({ track, month, week, highlight = false, showMonth = false }: { track: TrackId; month: Month; week: Week; highlight?: boolean; showMonth?: boolean }) {
   const { state } = useTracker(track);
   const actions = trackActions(track);
+  const t = ui(track);
   const p = weekProgress(state, week);
   const allDone = p.done === p.total;
 
@@ -20,15 +22,15 @@ export function WeekCard({ track, month, week, highlight = false, showMonth = fa
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
-            {showMonth ? `Month ${month.n} · ` : ""}Week {week.n}
-            {highlight && <span className="ml-2 rounded bg-accent px-1.5 py-0.5 text-accent-ink">Next up</span>}
+            {showMonth ? `${t.monthN(month.n)} · ` : ""}{t.weekN(week.n)}
+            {highlight && <span className="ml-2 rounded bg-accent px-1.5 py-0.5 text-accent-ink">{t.nextUp}</span>}
           </p>
           <h3 className="mt-1 font-serif text-lg font-semibold leading-snug">{week.focus}</h3>
         </div>
         <div className="min-w-[140px] text-right">
           <p className="text-sm tabular-nums">
-            <span className="font-semibold">{formatHours(p.hoursDone)}</span>
-            <span className="text-muted"> / {formatHours(p.hoursTotal)}</span>
+            <span className="font-semibold">{t.hours(p.hoursDone)}</span>
+            <span className="text-muted"> / {t.hours(p.hoursTotal)}</span>
           </p>
           <ProgressBar pct={p.pct} className="mt-1.5" />
           <button
@@ -36,24 +38,24 @@ export function WeekCard({ track, month, week, highlight = false, showMonth = fa
             onClick={() => actions.setMany(week.tasks.map((t) => t.id), !allDone)}
             className="mt-2 text-xs text-muted underline underline-offset-2 hover:text-ink"
           >
-            {allDone ? "Uncheck all" : "Mark week done"}
+            {allDone ? t.uncheckAll : t.markWeekDone}
           </button>
         </div>
       </header>
 
       <ul className="divide-y divide-line">
-        {week.tasks.map((t) => {
-          const checked = !!state.done[t.id];
+        {week.tasks.map((task) => {
+          const checked = !!state.done[task.id];
           return (
-            <li key={t.id} className="flex gap-3 px-5 py-3.5">
-              <Checkbox checked={checked} onChange={() => actions.toggle(t.id)} label={t.title} />
+            <li key={task.id} className="flex gap-3 px-5 py-3.5">
+              <Checkbox checked={checked} onChange={() => actions.toggle(task.id)} label={task.title} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <CategoryBadge category={t.category} />
-                  <span className="text-xs tabular-nums text-muted">{formatHours(t.hours)}</span>
+                  <CategoryBadge category={task.category} label={t.category[task.category]} />
+                  <span className="text-xs tabular-nums text-muted">{t.hours(task.hours)}</span>
                 </div>
-                <p className={`mt-1 leading-snug ${checked ? "text-muted line-through decoration-line" : ""}`}>{t.title}</p>
-                {t.detail && <p className="mt-1 text-sm leading-relaxed text-muted">{t.detail}</p>}
+                <p className={`mt-1 leading-snug ${checked ? "text-muted line-through decoration-line" : ""}`}>{task.title}</p>
+                {task.detail && <p className="mt-1 text-sm leading-relaxed text-muted">{task.detail}</p>}
               </div>
             </li>
           );
@@ -68,6 +70,7 @@ export function WeekCard({ track, month, week, highlight = false, showMonth = fa
 function WeekLogRow({ track, month, week }: { track: TrackId; month: number; week: number }) {
   const { state } = useTracker(track);
   const actions = trackActions(track);
+  const t = ui(track);
   const key = logKey(month, week);
   const log = state.logs[key] ?? {};
   const [open, setOpen] = useState(false);
@@ -77,12 +80,12 @@ function WeekLogRow({ track, month, week }: { track: TrackId; month: number; wee
     <footer className="border-t border-line bg-sunken/50 px-5 py-3 text-sm rounded-b-xl">
       <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between text-left text-muted hover:text-ink">
         <span>
-          Weekly log
+          {t.weeklyLog}
           {has && (
             <span className="ml-2 tabular-nums text-ink">
-              {log.hours ? `${log.hours} h` : ""}
+              {log.hours ? t.hours(log.hours) : ""}
               {log.hours && log.words ? " · " : ""}
-              {log.words ? `${log.words.toLocaleString()} words` : ""}
+              {log.words ? t.words(log.words) : ""}
             </span>
           )}
         </span>
@@ -91,7 +94,7 @@ function WeekLogRow({ track, month, week }: { track: TrackId; month: number; wee
       {open && (
         <div className="mt-3 grid gap-3 sm:grid-cols-[110px_130px_1fr]">
           <label className="block">
-            <span className="text-xs text-muted">Actual hours</span>
+            <span className="text-xs text-muted">{t.actualHours}</span>
             <input
               type="number"
               min={0}
@@ -103,7 +106,7 @@ function WeekLogRow({ track, month, week }: { track: TrackId; month: number; wee
             />
           </label>
           <label className="block">
-            <span className="text-xs text-muted">Words written</span>
+            <span className="text-xs text-muted">{t.wordsWritten}</span>
             <input
               type="number"
               min={0}
@@ -115,7 +118,7 @@ function WeekLogRow({ track, month, week }: { track: TrackId; month: number; wee
             />
           </label>
           <label className="block">
-            <span className="text-xs text-muted">One line: what worked, what didn&apos;t</span>
+            <span className="text-xs text-muted">{t.logNote}</span>
             <input
               type="text"
               value={log.note ?? ""}

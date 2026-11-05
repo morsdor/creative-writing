@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TRACKS, isTrackId } from "@/data/tracks";
+import { UI } from "@/lib/i18n";
 
 const SECTIONS = [
-  { path: "", label: "Dashboard" },
-  { path: "/month/1", label: "Months", match: "/month" },
-  { path: "/guide", label: "How it works" },
-  { path: "/reading", label: "Reading" },
-  { path: "/log", label: "Log" },
-];
+  { path: "", key: "dashboard" },
+  { path: "/month/1", key: "months", match: "/month" },
+  { path: "/guide", key: "guide" },
+  { path: "/reading", key: "reading" },
+  { path: "/log", key: "log" },
+] as const;
 
 function linkClass(active: boolean) {
   return `rounded-md px-2.5 py-1.5 transition-colors ${active ? "bg-ink text-paper" : "text-muted hover:bg-sunken hover:text-ink"}`;
@@ -21,6 +22,7 @@ export function Nav() {
   const [, first = "", ...rest] = path.split("/");
   const track = isTrackId(first) ? first : null;
   const sub = rest.length ? `/${rest.join("/")}` : "";
+  const t = UI[track ?? "english"];
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -44,15 +46,15 @@ export function Nav() {
       <nav className="-mx-1 flex flex-wrap gap-1 text-sm">
         {track &&
           SECTIONS.map((s) => {
-            const active = s.match ? sub.startsWith(s.match) : sub === s.path;
+            const active = "match" in s ? sub.startsWith(s.match) : sub === s.path;
             return (
-              <Link key={s.label} href={`/${track}${s.path}`} className={linkClass(active)}>
-                {s.label}
+              <Link key={s.key} href={`/${track}${s.path}`} className={linkClass(active)} lang={t.htmlLang}>
+                {t.nav[s.key]}
               </Link>
             );
           })}
-        <Link href="/settings" className={linkClass(path === "/settings")}>
-          Settings
+        <Link href="/settings" className={linkClass(path === "/settings")} lang={t.htmlLang}>
+          {t.nav.settings}
         </Link>
       </nav>
     </div>
